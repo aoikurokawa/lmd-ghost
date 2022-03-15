@@ -20,3 +20,9 @@ pub struct Tweet {
     pub topic: String,
     pub content: String,
 }
+
+const DISCRIMINATOR_LENGTH: usize = 8;
+const PUBLIC_KEY_LENGTH: usize = 32;
+const TIMESTAMP_LENGTH: usize = 8;
+const STRING_LENGTH_PREFIX: usize = 4;
+const MAX_TOPIC_LENGTH: usize = 50 * 4;
