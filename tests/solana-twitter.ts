@@ -7,6 +7,7 @@ describe('solana-twitter', () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.Provider.env());
 
+  // @ts-ignore
   const program = anchor.workspace.SolanaTwitter as Program<SolanaTwitter>;
 
   it('Is initialized!', async () => {
