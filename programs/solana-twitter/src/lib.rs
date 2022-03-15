@@ -1,11 +1,12 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::system_program;
 
 declare_id!("9dR6c95cjzNhS4rnhzgZpRAhUmVrNq5w6oHyPs5bqAev");
 
 #[program]
 pub mod solana_twitter {
     use super::*;
-    pub fn initialize(ctx: Context<Initialize>) -> ProgramResult {
+    pub fn send_tweet(ctx: Context<SendTweet>, topic: String, content: String) -> ProgramResult {
         Ok(())
     }
 }
@@ -14,7 +15,9 @@ pub mod solana_twitter {
 pub struct SendTweet<'info> {
     #[account(init, payer = author, space = Tweet::LEN)]
     pub tweet: Account<'info, Tweet>,
+    #[account(mut)]
     pub author: Signer<'info>,
+    #[account(address = system_program::ID)]
     pub system_program: AccountInfo<'info>,
 }
 
