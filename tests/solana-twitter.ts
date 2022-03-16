@@ -163,7 +163,13 @@ describe("solana-twitter", () => {
         },
       },
     ]);
-    // assert.equal(tweetAccounts.length, 3);
-    
+    assert.equal(tweetAccounts.length, 2);
+    assert.ok(
+      tweetAccounts.every((tweetAccount) => {
+        return (
+          tweetAccount.account.author.toBase58() === authorPublicKey.toBase58()
+        );
+      })
+    );
   });
 });
