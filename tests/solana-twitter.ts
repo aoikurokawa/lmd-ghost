@@ -121,4 +121,30 @@ describe("solana-twitter", () => {
       "The instruction should have failed with a 51-character topic."
     );
   });
+
+  it("can not provide a content with more than280 characters", async () => {
+    try {
+      // Call the "SendTweet" instruction on behalf of this other user.
+      const tweet = anchor.web3.Keypair.generate();
+      const contentWith51Chars = "x".repeat(281);
+      await program.rpc.sendTweet("Hello", contentWith51Chars, {
+        accounts: {
+          tweet: tweet.publicKey,
+          author: program.provider.wallet.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        },
+        signers: [tweet],
+      });
+    } catch (error) {
+      assert.equal(
+        error.msg,
+        "The provided content should be 280 characters long maximum."
+      );
+      return;
+    }
+
+    assert.fail(
+      "The instruction should have failed with a 281-character content."
+    );
+  });
 });
