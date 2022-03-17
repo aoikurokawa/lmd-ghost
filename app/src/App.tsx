@@ -1,14 +1,15 @@
 import React from "react";
 import "./App.css";
 
+import Sidebar from "./components/Sidebar";
+import Feed from "./components/Feed";
+
+
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <nav className="flex items-center justify-between p-6 container mx-auto">
-
-        </nav>
-      </header>
+      <Sidebar />
+      <Feed />
     </div>
   );
 }
