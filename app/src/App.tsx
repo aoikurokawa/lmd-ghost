@@ -15,8 +15,6 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import {
   WalletModalProvider,
-  WalletDisconnectButton,
-  WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import "./App.css";
@@ -26,7 +24,7 @@ import Feed from "./components/Feed";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const wallets = [new PhantomWalletAdapter()];
+const endpoint = "http://127.0.0.1:8899";
 
 function App() {
   return (
@@ -38,8 +36,9 @@ function App() {
 }
 
 const AppWithProvider = () => {
+  const wallets = [new PhantomWalletAdapter({network: endpoint})];
   return (
-    <ConnectionProvider endpoint="http://127.0.0.1:8899">
+    <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
           <App />
@@ -49,4 +48,4 @@ const AppWithProvider = () => {
   );
 };
 
-export default AppWithProvider;
+export default App;

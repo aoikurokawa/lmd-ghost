@@ -32,7 +32,9 @@ function Sidebar() {
           Tweet
         </Button>
 
-        <WalletMultiButton />
+        <Button variant="outlined" className="sidebar__wallet" fullWidth>
+          Connect Wallet
+        </Button>
     </div>
   );
 }
