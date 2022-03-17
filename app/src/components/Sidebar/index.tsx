@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import "./Sidebar.css";
 import SidebarOption from "../SidebarOption";
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -12,22 +12,28 @@ import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button } from "@mui/material";
 
+import { Wallet } from "./Wallet";
+
+require("@solana/wallet-adapter-react-ui/styles.css");
+
 function Sidebar() {
   return (
     <div className="sidebar">
-      <TwitterIcon className="sidebar__twitterIcon" />
-      <SidebarOption Icon={HomeIcon} text="Home" active={true} />
-      <SidebarOption Icon={SearchIcon} text="Explore" />
-      <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
-      <SidebarOption Icon={MailOutlineIcon} text="Messages" />
-      <SidebarOption Icon={BookmarkBorderIcon} text="Bookmarks" />
-      <SidebarOption Icon={ListAltIcon} text="Lists" />
-      <SidebarOption Icon={PermIdentityIcon} text="Profile" />
-      <SidebarOption Icon={MoreHorizIcon} text="More" />
+      <Wallet>
+        <TwitterIcon className="sidebar__twitterIcon" />
+        <SidebarOption Icon={HomeIcon} text="Home" active={true} />
+        <SidebarOption Icon={SearchIcon} text="Explore" />
+        <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
+        <SidebarOption Icon={MailOutlineIcon} text="Messages" />
+        <SidebarOption Icon={BookmarkBorderIcon} text="Bookmarks" />
+        <SidebarOption Icon={ListAltIcon} text="Lists" />
+        <SidebarOption Icon={PermIdentityIcon} text="Profile" />
+        <SidebarOption Icon={MoreHorizIcon} text="More" />
 
-      <Button variant="outlined" className="sidebar__tweet" fullWidth>
-        Tweet
-      </Button>
+        <Button variant="outlined" className="sidebar__tweet" fullWidth>
+          Tweet
+        </Button>
+      </Wallet>
     </div>
   );
 }
