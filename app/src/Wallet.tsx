@@ -24,6 +24,8 @@ import App from "./App";
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
 
+const wallets = [new PhantomWalletAdapter()]
+
 export const Wallet: FC = () => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
   const network = WalletAdapterNetwork.Devnet;
@@ -34,7 +36,7 @@ export const Wallet: FC = () => {
   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --
   // Only the wallets you configure here will be compiled into your application, and only the dependencies
   // of wallets that your users connect to will be loaded.
-  const wallets = [new PhantomWalletAdapter()]
+  
 
   return (
     <ConnectionProvider endpoint="http://127.0.0.1:8899">
@@ -46,3 +48,13 @@ export const Wallet: FC = () => {
     </ConnectionProvider>
   );
 };
+
+const AppWithProvider = () => {
+  <ConnectionProvider endpoint="http://127.0.0.1:8899">
+      <WalletProvider wallets={wallets} autoConnect>
+        <WalletModalProvider>
+          <App />
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+}

@@ -8,7 +8,7 @@ import { Wallet } from "./Wallet";
 
 ReactDOM.render(
   <React.StrictMode>
-    <Wallet />
+    <App />
   </React.StrictMode>,
   document.getElementById("root")
 );
