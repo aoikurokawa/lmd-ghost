@@ -11,15 +11,13 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button } from "@mui/material";
-
-import { Wallet } from "./Wallet";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
 function Sidebar() {
   return (
     <div className="sidebar">
-      <Wallet>
         <TwitterIcon className="sidebar__twitterIcon" />
         <SidebarOption Icon={HomeIcon} text="Home" active={true} />
         <SidebarOption Icon={SearchIcon} text="Explore" />
@@ -33,7 +31,8 @@ function Sidebar() {
         <Button variant="outlined" className="sidebar__tweet" fullWidth>
           Tweet
         </Button>
-      </Wallet>
+
+        <WalletMultiButton />
     </div>
   );
 }

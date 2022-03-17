@@ -19,6 +19,7 @@ import {
   WalletMultiButton,
 } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
+import App from "./App";
 
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -33,27 +34,13 @@ export const Wallet: FC = () => {
   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --
   // Only the wallets you configure here will be compiled into your application, and only the dependencies
   // of wallets that your users connect to will be loaded.
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SlopeWalletAdapter(),
-      new SolflareWalletAdapter({ network }),
-      new TorusWalletAdapter(),
-      new LedgerWalletAdapter(),
-      new SolletWalletAdapter({ network }),
-      new SolletExtensionWalletAdapter({ network }),
-    ],
-    [network]
-  );
+  const wallets = [new PhantomWalletAdapter()]
 
   return (
-    <ConnectionProvider endpoint={endpoint}>
+    <ConnectionProvider endpoint="http://127.0.0.1:8899">
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          
-          <WalletMultiButton />
-          <WalletDisconnectButton />
-          {/* Your app's components go here, nested within the context providers. */}
+          <App />
         </WalletModalProvider>
       </WalletProvider>
     </ConnectionProvider>

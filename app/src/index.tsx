@@ -4,10 +4,11 @@ import ReactDOM from "react-dom";
 // import "./main.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
+import { Wallet } from "./Wallet";
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Wallet />
   </React.StrictMode>,
   document.getElementById("root")
 );
