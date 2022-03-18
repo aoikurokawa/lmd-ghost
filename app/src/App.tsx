@@ -13,10 +13,8 @@ import {
   SolletWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import {
-  WalletModalProvider,
-} from "@solana/wallet-adapter-react-ui";
-import { clusterApiUrl } from "@solana/web3.js";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
+import { clusterApiUrl, ConfirmOptions } from "@solana/web3.js";
 import "./App.css";
 
 import Sidebar from "./components/Sidebar";
@@ -36,7 +34,7 @@ function App() {
 }
 
 const AppWithProvider = () => {
-  const wallets = [new PhantomWalletAdapter({network: endpoint})];
+  const wallets = [new PhantomWalletAdapter({ network: endpoint })];
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>

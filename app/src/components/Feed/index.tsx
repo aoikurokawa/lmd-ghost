@@ -5,6 +5,7 @@ import "./Feed.css";
 import Post from "../Post";
 import TweetBox from "../TweetBox";
 import { IRootState } from "../../store/index";
+import { fetchTweets } from "../../store/tweet/async-actions";
 
 function Feed() {
   const [posts, setPosts] = useState([]);
@@ -12,10 +13,11 @@ function Feed() {
   const { data } = useSelector((state: IRootState) => state.chain);
 
   useEffect(() => {
+    fetchTweets();
     // db.collection("posts").onSnapshot((snapshot) => {
     //   setPosts(snapshot.docs.map((doc) => doc.data()));
     // });
-  }, []);
+  }, [data]);
 
   return (
     <div className="feed">
