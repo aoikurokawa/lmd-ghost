@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import "./Sidebar.css";
 import SidebarOption from "../SidebarOption";
 import TwitterIcon from "@mui/icons-material/Twitter";
@@ -11,30 +11,58 @@ import ListAltIcon from "@mui/icons-material/ListAlt";
 import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button } from "@mui/material";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { makeStyles } from "@mui/styles";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
+const useStyles = makeStyles({
+  walletButton: {
+    width: "100%",
+    textOverflow: "ellipsis",
+    overflow: "hidden",
+    whiteSpace: "nowrap",
+  },
+});
+
 function Sidebar() {
+  const [walletAddress, setWalletAddress] = useState<string>();
+  const classes = useStyles();
+  const connectWallet = async () => {
+    // @ts-ignore
+    const { solana } = window;
+
+    if (solana) {
+      const response = await solana.connect();
+      console.log("Connected with Public Key: ", response.publicKey.toString());
+      setWalletAddress(response.publicKey.toString());
+    }
+  };
   return (
     <div className="sidebar">
-        <TwitterIcon className="sidebar__twitterIcon" />
-        <SidebarOption Icon={HomeIcon} text="Home" active={true} />
-        <SidebarOption Icon={SearchIcon} text="Explore" />
-        <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
-        <SidebarOption Icon={MailOutlineIcon} text="Messages" />
-        <SidebarOption Icon={BookmarkBorderIcon} text="Bookmarks" />
-        <SidebarOption Icon={ListAltIcon} text="Lists" />
-        <SidebarOption Icon={PermIdentityIcon} text="Profile" />
-        <SidebarOption Icon={MoreHorizIcon} text="More" />
+      <TwitterIcon className="sidebar__twitterIcon" />
+      <SidebarOption Icon={HomeIcon} text="Home" active={true} />
+      <SidebarOption Icon={SearchIcon} text="Explore" />
+      <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
+      <SidebarOption Icon={MailOutlineIcon} text="Messages" />
+      <SidebarOption Icon={BookmarkBorderIcon} text="Bookmarks" />
+      <SidebarOption Icon={ListAltIcon} text="Lists" />
+      <SidebarOption Icon={PermIdentityIcon} text="Profile" />
+      <SidebarOption Icon={MoreHorizIcon} text="More" />
 
-        <Button variant="outlined" className="sidebar__tweet" fullWidth>
-          Tweet
-        </Button>
+      <Button variant="outlined" className="sidebar__tweet" fullWidth>
+        Tweet
+      </Button>
 
-        <Button variant="outlined" className="sidebar__wallet" fullWidth>
-          Connect Wallet
-        </Button>
+      <Button
+        variant="outlined"
+        className="sidebar__wallet"
+        fullWidth
+        onClick={connectWallet}
+      >
+        <p className={classes.walletButton}>
+          {walletAddress ? walletAddress : "Connect Wallet"}
+        </p>
+      </Button>
     </div>
   );
 }
