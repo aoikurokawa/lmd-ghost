@@ -14,5 +14,5 @@ export enum ActionType {
 
 export type Action = {
   type: ActionType.GET_WALLETADDRESS;
-  payload: Required<IChainState>;
+  payload: Required<ChainAttr>;
 };
