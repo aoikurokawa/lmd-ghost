@@ -12,6 +12,9 @@ import PermIdentityIcon from "@mui/icons-material/PermIdentity";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
+import { useDispatch } from "react-redux";
+
+import { ActionType, ChainAttr } from "../../store/chain/types";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -27,6 +30,8 @@ const useStyles = makeStyles({
 function Sidebar() {
   const [walletAddress, setWalletAddress] = useState<string>();
   const classes = useStyles();
+  const dispatch = useDispatch();
+
   const connectWallet = async () => {
     // @ts-ignore
     const { solana } = window;
@@ -35,6 +40,11 @@ function Sidebar() {
       const response = await solana.connect();
       console.log("Connected with Public Key: ", response.publicKey.toString());
       setWalletAddress(response.publicKey.toString());
+
+      dispatch({
+        type: ActionType.GET_WALLETADDRESS,
+        payload: { walletAddress: response.publicKey.toString() },
+      });
     }
   };
   return (

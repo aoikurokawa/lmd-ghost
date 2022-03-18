@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+
 import "./Feed.css";
 import Post from "../Post";
 import TweetBox from "../TweetBox";
+import { IRootState } from "../../store/index";
 
 function Feed() {
   const [posts, setPosts] = useState([]);
+
+  const { data } = useSelector((state: IRootState) => state.chain);
 
   useEffect(() => {
     // db.collection("posts").onSnapshot((snapshot) => {
@@ -17,17 +22,21 @@ function Feed() {
       <div className="feed__header">
         <h2>Home</h2>
       </div>
-      <TweetBox />
+      {data.walletAddress ? (
+        <TweetBox />
+      ) : (
+        <div className="">Connect your wallet to start tweeting...</div>
+      )}
       {/* {posts.map((post) => (
-        <Post
-          displayName={post.displayName}
-          username={post.username}
-          verified={post.verified}
-          text={post.text}
-          avatar={post.avatar}
-          image={post.image}
-        />
-      ))} */}
+          <Post
+            displayName={post.displayName}
+            username={post.username}
+            verified={post.verified}
+            text={post.text}
+            avatar={post.avatar}
+            image={post.image}
+          />
+        ))} */}
     </div>
   );
 }
