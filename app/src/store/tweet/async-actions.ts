@@ -58,3 +58,4 @@ export const sendTweet = async (topic: string, content: string) => {
 
   return new Tweet(tweet.publicKey, tweetAccount);
 };
+

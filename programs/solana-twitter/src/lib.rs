@@ -36,7 +36,7 @@ pub struct SendTweet<'info> {
     #[account(mut)]
     pub author: Signer<'info>,
     #[account(address = system_program::ID)]
-    pub system_program: AccountInfo<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 // 1. Define the structure of the Tweet account.
