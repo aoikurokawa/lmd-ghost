@@ -10,17 +10,17 @@
 
 ## Usage
 
-1. Deploy Contract
+1. Run Solana localnet
 
 ```bash
-$ ts-node ~/metaplex/js/packages/cli/src/candy-machine-v2-cli.ts upload -e devnet -k ~/.config/solana/devnet.json -cp config.json ./assets
-# If you want to update contract `ts-node ~/metaplex/js/packages/cli/src/candy-machine-v2-cli.ts update_candy_machine -e devnet -k ~/.config/solana/devnet.json -cp config.json`
+$ solana-test-validator --no-bpf-jit
+# If you want to run on m1 mac book, you should use this command
 ```
 
-2. Verify
+2. Deploy Smart Contract
 
 ```bash
-$ ts-node ~/metaplex/js/packages/cli/src/candy-machine-v2-cli.ts verify_upload -e devnet -k ~/.config/solana/devnet.json
+$ anchor deploy
 ```
 
 3. Edit your environment variables
