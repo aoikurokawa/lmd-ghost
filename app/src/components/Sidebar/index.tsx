@@ -14,6 +14,7 @@ import { useDispatch } from "react-redux";
 
 import SidebarOption from "../SidebarOption";
 import { ActionType, ChainAttr } from "../../store/chain/types";
+import { WalletMultiButton } from "@solana/wallet-adapter-material-ui";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -62,14 +63,15 @@ function Sidebar() {
         Tweet
       </button>
 
-      <button
+      {/* <button
         className="bg-[#512da8] border-none text-white font-bold rounded-2xl h-12 mt-5 w-full p-2"
         onClick={connectWallet}
       >
         <p className="truncate overflow-hidden whitespace-nowrap">
           {walletAddress ? walletAddress : "Connect Wallet"}
         </p>
-      </button>
+      </button> */}
+      <WalletMultiButton />
     </div>
   );
 }

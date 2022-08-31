@@ -524,6 +524,13 @@
     "@solana/web3.js" "^1.20.0"
     eventemitter3 "^4.0.0"
 
+"@solana/wallet-adapter-base@^0.9.16":
+  version "0.9.16"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-base/-/wallet-adapter-base-0.9.16.tgz#7b67e145f47a9cdc8e702eacc02fa867084a9bf4"
+  integrity sha512-nwzpzo3SjjsCkgN5ROQqoL7Y90j4QUlqxL17sg/qMcoYIBVfalyu87IZAfL5B06eSQ8jmtgnuQJW+91WcLo1ag==
+  dependencies:
+    eventemitter3 "^4.0.0"
+
 "@solana/wallet-adapter-base@^0.9.3", "@solana/wallet-adapter-base@^0.9.4":
   version "0.9.5"
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-base/-/wallet-adapter-base-0.9.5.tgz#6780dd096d30f0e1ffc9c7869029ec37b2a2fc9e"
@@ -593,6 +600,14 @@
     "@solana/web3.js" "^1.20.0"
     buffer "^6.0.3"
 
+"@solana/wallet-adapter-material-ui@^0.16.14":
+  version "0.16.14"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-material-ui/-/wallet-adapter-material-ui-0.16.14.tgz#6d69fbe360c4552e51c0ec8b33c4861baa8538e3"
+  integrity sha512-8Kzf2UQ6A9/zZHkl9ANYRIk5l3e7OEA5z4HGDoCKvzXDHmp1F/Vp6BLQp6YCafSPGD0vNRoBB5BSL8ruqNcdAg==
+  dependencies:
+    "@solana/wallet-adapter-base" "^0.9.16"
+    "@solana/wallet-adapter-react" "^0.15.18"
+
 "@solana/wallet-adapter-mathwallet@^0.9.2":
   version "0.9.3"
   resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-mathwallet/-/wallet-adapter-mathwallet-0.9.3.tgz#fada9c5aafec74fcb872baea02de04cb9784209c"
@@ -600,6 +615,13 @@
   dependencies:
     "@solana/wallet-adapter-base" "^0.9.3"
     "@solana/web3.js" "^1.20.0"
+
+"@solana/wallet-adapter-phantom@^0.9.15":
+  version "0.9.15"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-phantom/-/wallet-adapter-phantom-0.9.15.tgz#237e50babdea598f5374ef7ef0af0c26463ac0b8"
+  integrity sha512-ds5ucs+8V7dkeWAhwRHy3K0GGnXxxZW1Jk5BWjRK/w+YIibITvCzParQkrDit8Fqu7iolwNFcqywykSn1iwaFQ==
+  dependencies:
+    "@solana/wallet-adapter-base" "^0.9.16"
 
 "@solana/wallet-adapter-phantom@^0.9.2":
   version "0.9.3"
@@ -628,6 +650,13 @@
     "@solana/wallet-adapter-base" "^0.9.3"
     "@solana/web3.js" "^1.20.0"
     react "^17.0.0"
+
+"@solana/wallet-adapter-react@^0.15.18":
+  version "0.15.18"
+  resolved "https://registry.yarnpkg.com/@solana/wallet-adapter-react/-/wallet-adapter-react-0.15.18.tgz#7700362574c32fef25fb61314f7e0dfedb0f2fca"
+  integrity sha512-CCcv9L8kn6WBO3FFQeX5GZf+a5CyPzULZYqiZam3uQ0zvx/TIdGYgfBJIDDwjQnTKHk+BaqUURA3rqzsLbINhA==
+  dependencies:
+    "@solana/wallet-adapter-base" "^0.9.16"
 
 "@solana/wallet-adapter-react@^0.15.3":
   version "0.15.4"
