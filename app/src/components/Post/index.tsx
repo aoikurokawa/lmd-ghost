@@ -11,27 +11,26 @@ import "./Post.css";
 
 function Post({ displayName, username, verified, text, image, avatar }: any) {
   return (
-    <div className="post">
-      <div className="post__avatar">
+    <div className="flex items-start">
+      <div className="p-5">
         <Avatar src={avatar} />
       </div>
-      <div className="post__body">
+      <div className="flex-1 p-2">
         <div className="post__header">
           <div className="post__headerText">
             <h3>
               {displayName}{" "}
-              <span className="post__headerSpecial">
-                {verified && <VerifiedUser className="post__badge" />} @
-                {username}
+              <span className="font-medium text-xs #f9fafb">
+                {verified && <VerifiedUser className="text-xs" />} @{username}
               </span>
             </h3>
           </div>
-          <div className="post__headerDescription">
+          <div className="text-xs mb-5">
             <p>{text}</p>
           </div>
         </div>
         <img src={image} alt="" />
-        <div className="post__footer">
+        <div className="flex justify-between mt-2">
           <ChatBubbleOutline fontSize="small" />
           <Repeat fontSize="small" />
           <FavoriteBorder fontSize="small" />
