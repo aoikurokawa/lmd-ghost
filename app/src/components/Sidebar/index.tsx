@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 function Sidebar() {
   const [walletAddress, setWalletAddress] = useState<string>();
   const classes = useStyles();
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const connectWallet = async () => {
     // @ts-ignore
@@ -40,10 +40,10 @@ function Sidebar() {
       console.log("Connected with Public Key: ", response.publicKey.toString());
       setWalletAddress(response.publicKey.toString());
 
-      dispatch({
-        type: ActionType.GET_WALLETADDRESS,
-        payload: { walletAddress: response.publicKey.toString() },
-      });
+      // dispatch({
+      //   type: ActionType.GET_WALLETADDRESS,
+      //   payload: { walletAddress: response.publicKey.toString() },
+      // });
     }
   };
   return (

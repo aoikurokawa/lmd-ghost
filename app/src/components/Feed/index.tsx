@@ -9,25 +9,25 @@ import { fetchTweets } from "../../store/tweet/async-actions";
 function Feed() {
   const [posts, setPosts] = useState([]);
 
-  const { data } = useSelector((state: IRootState) => state.chain);
+  // const { data } = useSelector((state: IRootState) => state.chain);
 
-  useEffect(() => {
-    fetchTweets();
-    // db.collection("posts").onSnapshot((snapshot) => {
-    //   setPosts(snapshot.docs.map((doc) => doc.data()));
-    // });
-  }, [data]);
+  // useEffect(() => {
+  // fetchTweets();
+  // db.collection("posts").onSnapshot((snapshot) => {
+  //   setPosts(snapshot.docs.map((doc) => doc.data()));
+  // });
+  // }, [data]);
 
   return (
     <div className="flex-1 min-w-fit overflow-y-scroll">
       <div className="sticky top-0 bg-white z-50 px-4 py-5">
         <h2>Home</h2>
       </div>
-      {data.walletAddress ? (
+      {/* {data.walletAddress ? (
         <TweetBox />
       ) : (
         <div className="">Connect your wallet to start tweeting...</div>
-      )}
+      )} */}
       {/* {posts.map((post) => (
           <Post
             displayName={post.displayName}
