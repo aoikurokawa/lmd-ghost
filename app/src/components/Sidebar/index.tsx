@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import styles from "./Sidebar.module.css";
 import SidebarOption from "../SidebarOption";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import HomeIcon from "@mui/icons-material/Home";
@@ -48,8 +47,8 @@ function Sidebar() {
     }
   };
   return (
-    <div className={styles.sidebar}>
-      <TwitterIcon className={styles.sidebar__twitterIcon} />
+    <div className="flex-1 min-w-[250px] pt-5 pl-5 pr-5">
+      <TwitterIcon className="text-lg ml-5 mb-5" />
       <SidebarOption Icon={HomeIcon} text="Home" active={true} />
       <SidebarOption Icon={SearchIcon} text="Explore" />
       <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
@@ -59,19 +58,21 @@ function Sidebar() {
       <SidebarOption Icon={PermIdentityIcon} text="Profile" />
       <SidebarOption Icon={MoreHorizIcon} text="More" />
 
-      <Button variant="outlined" className={styles.sidebar__tweet} fullWidth>
+      <Button
+        variant="outlined"
+        className="border-none text-white font-bold rounded-2xl h-12 mt-5"
+        fullWidth
+      >
         Tweet
       </Button>
 
       <Button
         variant="outlined"
-        className={styles.sidebar__wallet}
+        className="bg-[#512da8] border-none text-white font-bold rounded-2xl h-12 mt-5"
         fullWidth
         onClick={connectWallet}
       >
-        <p className={classes.walletButton}>
-          {walletAddress ? walletAddress : "Connect Wallet"}
-        </p>
+        <p className="">{walletAddress ? walletAddress : "Connect Wallet"}</p>
       </Button>
     </div>
   );

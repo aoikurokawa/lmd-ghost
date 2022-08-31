@@ -17,7 +17,7 @@ const endpoint = "http://127.0.0.1:8899";
 
 function App() {
   return (
-    <div className="App">
+    <div className="flex h-screen max-w-7xl ml-auto mr-auto">
       <Sidebar />
       <Feed />
     </div>

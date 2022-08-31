@@ -1,6 +1,5 @@
 import { Avatar, Button } from "@mui/material";
 import React, { useState } from "react";
-import "./TweetBox.css";
 
 function TweetBox() {
   const [tweetMessage, setTweetMessage] = useState("");
@@ -19,16 +18,14 @@ function TweetBox() {
     //   image: tweetImage,
     // });
 
-    
-
     setTweetMessage("");
     setTweetImage("");
   };
 
   return (
-    <div className="tweetBox">
+    <div className="pb-2 pr-2">
       <form>
-        <div className="tweetBox__input">
+        <div className="flex p-5">
           <Avatar src="https://scontent-bom1-1.xx.fbcdn.net/v/t1.0-1/c0.33.200.200a/p200x200/51099653_766820610355014_8315780769297465344_o.jpg?_nc_cat=101&_nc_sid=7206a8&_nc_ohc=c1qBHkwAgVsAX8KynKU&_nc_ht=scontent-bom1-1.xx&oh=340b05bea693dd1671296e0c2d004bb3&oe=5F84CA62" />
           <input
             value={tweetMessage}
@@ -42,9 +39,13 @@ function TweetBox() {
           value={tweetImage}
           onChange={(e) => setTweetImage(e.target.value)}
           type="text"
-          className="tweetBox__imageInput"
+          className="border-none p-4"
         />
-        <Button onClick={sendTweet} type="submit" className="tweetBox__button">
+        <Button
+          onClick={sendTweet}
+          type="submit"
+          className="border-none text-white font-bold rounded-2xl h-11 mt-5 ml-auto"
+        >
           Tweet
         </Button>
       </form>
