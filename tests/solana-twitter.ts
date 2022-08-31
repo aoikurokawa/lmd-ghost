@@ -5,61 +5,57 @@ import * as assert from "assert";
 import { bs58 } from "@project-serum/anchor/dist/cjs/utils/bytes";
 
 describe("solana-twitter", () => {
-  // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
   const program = anchor.workspace.SolanaTwitter as Program<SolanaTwitter>;
 
   it("can send a new tweet!", async () => {
-    // Before sending the transaction to the blockchain.
     const tweetKeypair = anchor.web3.Keypair.generate();
-    await program.methods.sendTweet("Hello", "Hello, World!").accounts({        
+    await program.methods.sendTweet("Hello", "Hello, World!").accounts(
+      {        
         tweet: tweetKeypair.publicKey,
         author: program.provider.publicKey,
         systemProgram: anchor.web3.SystemProgram.programId,
       }
-    ).signers([tweetKeypair])
+    )
+    .signers([tweetKeypair])
     .rpc();      
 
     const tweetAccount = await program.account.tweet.fetch(
       tweetKeypair.publicKey
     );
-    console.log(tweetAccount);
 
-    // Ensure it has the right data.
-    // assert.equal(
-    //   tweetAccount.author.toBase58(),
-    //   program.provider.wallet.publicKey.toBase58()
-    // );
-    // assert.equal(tweetAccount.topic, "Hello");
-    // assert.equal(tweetAccount.content, "Hello, World!");
-    // assert.ok(tweetAccount.timestamp);
+    assert.equal(
+      tweetAccount.author.toBase58(),
+      program.provider.publicKey.toBase58()
+    );
+    assert.equal(tweetAccount.topic, "Hello");
+    assert.equal(tweetAccount.content, "Hello, World!");
+    assert.ok(tweetAccount.timestamp);
   });
 
-  // it("can send a new tweet without a topic", async () => {
-  //   // Call the "SendTweet" instruction
-  //   const tweet = anchor.web3.Keypair.generate();
-  //   await program.rpc.sendTweet("", "gm", {
-  //     accounts: {
-  //       tweet: tweet.publicKey,
-  //       author: program.provider.wallet.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     },
-  //     signers: [tweet],
-  //   });
+  it("can send a new tweet without a topic", async () => {
+    const tweet = anchor.web3.Keypair.generate();
+    await program.methods.sendTweet("", "gm").accounts(
+      {        
+        tweet: tweet.publicKey,
+        author: program.provider.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      }
+    )
+    .signers([tweet])
+    .rpc();      
 
-  //   // Fetch the account details of the created tweet.
-  //   const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
+    const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
 
-  //   // Ensure it has the right data.
-  //   assert.equal(
-  //     tweetAccount.author.toBase58(),
-  //     program.provider.wallet.publicKey.toBase58()
-  //   );
-  //   assert.equal(tweetAccount.topic, "");
-  //   assert.equal(tweetAccount.content, "gm");
-  //   assert.ok(tweetAccount.timestamp);
-  // });
+    assert.equal(
+      tweetAccount.author.toBase58(),
+      program.provider.publicKey.toBase58()
+    );
+    assert.equal(tweetAccount.topic, "");
+    assert.equal(tweetAccount.content, "gm");
+    assert.ok(tweetAccount.timestamp);
+  });
 
   // it("can send a new tweet from a different author", async () => {
   //   // Generate another user and airdrop them some SOL.
