@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-import SidebarOption from "../SidebarOption";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import HomeIcon from "@mui/icons-material/Home";
 import SearchIcon from "@mui/icons-material/Search";
@@ -13,6 +12,7 @@ import { Button } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import { useDispatch } from "react-redux";
 
+import SidebarOption from "../SidebarOption";
 import { ActionType, ChainAttr } from "../../store/chain/types";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -47,7 +47,7 @@ function Sidebar() {
     }
   };
   return (
-    <div className="flex-1 min-w-[250px] pt-5 pl-5 pr-5">
+    <div className="w-60 pt-5 pl-5 pr-5 border">
       <TwitterIcon className="text-lg ml-5 mb-5" />
       <SidebarOption Icon={HomeIcon} text="Home" active={true} />
       <SidebarOption Icon={SearchIcon} text="Explore" />
@@ -58,22 +58,18 @@ function Sidebar() {
       <SidebarOption Icon={PermIdentityIcon} text="Profile" />
       <SidebarOption Icon={MoreHorizIcon} text="More" />
 
-      <Button
-        variant="outlined"
-        className="border-none text-white font-bold rounded-2xl h-12 mt-5"
-        fullWidth
-      >
+      <button className="border-none text-white font-bold rounded-2xl h-12 mt-5 bg-black w-full">
         Tweet
-      </Button>
+      </button>
 
-      <Button
-        variant="outlined"
-        className="bg-[#512da8] border-none text-white font-bold rounded-2xl h-12 mt-5"
-        fullWidth
+      <button
+        className="bg-[#512da8] border-none text-white font-bold rounded-2xl h-12 mt-5 w-full p-2"
         onClick={connectWallet}
       >
-        <p className="">{walletAddress ? walletAddress : "Connect Wallet"}</p>
-      </Button>
+        <p className="truncate overflow-hidden whitespace-nowrap">
+          {walletAddress ? walletAddress : "Connect Wallet"}
+        </p>
+      </button>
     </div>
   );
 }

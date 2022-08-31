@@ -23,8 +23,9 @@ function Feed() {
       <div className="sticky top-0 bg-white z-50 px-4 py-5">
         <h2>Home</h2>
       </div>
+      <TweetBox />
       {/* {data.walletAddress ? (
-        <TweetBox />
+        
       ) : (
         <div className="">Connect your wallet to start tweeting...</div>
       )} */}
