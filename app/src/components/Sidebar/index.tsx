@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import "./Sidebar.css";
+import styles from "./Sidebar.module.css";
 import SidebarOption from "../SidebarOption";
 import TwitterIcon from "@mui/icons-material/Twitter";
 import HomeIcon from "@mui/icons-material/Home";
@@ -48,8 +48,8 @@ function Sidebar() {
     }
   };
   return (
-    <div className="sidebar">
-      <TwitterIcon className="sidebar__twitterIcon" />
+    <div className={styles.sidebar}>
+      <TwitterIcon className={styles.sidebar__twitterIcon} />
       <SidebarOption Icon={HomeIcon} text="Home" active={true} />
       <SidebarOption Icon={SearchIcon} text="Explore" />
       <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
@@ -59,13 +59,13 @@ function Sidebar() {
       <SidebarOption Icon={PermIdentityIcon} text="Profile" />
       <SidebarOption Icon={MoreHorizIcon} text="More" />
 
-      <Button variant="outlined" className="sidebar__tweet" fullWidth>
+      <Button variant="outlined" className={styles.sidebar__tweet} fullWidth>
         Tweet
       </Button>
 
       <Button
         variant="outlined"
-        className="sidebar__wallet"
+        className={styles.sidebar__wallet}
         fullWidth
         onClick={connectWallet}
       >
