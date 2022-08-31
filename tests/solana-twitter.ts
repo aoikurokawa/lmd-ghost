@@ -57,36 +57,36 @@ describe("solana-twitter", () => {
     assert.ok(tweetAccount.timestamp);
   });
 
-  // it("can send a new tweet from a different author", async () => {
-  //   const otherUser = anchor.web3.Keypair.generate();
-  //   const signature = await program.provider.connection.requestAirdrop(
-  //     otherUser.publicKey,
-  //     1000000000
-  //   );
-  //   await program.provider.connection.confirmTransaction(signature, "finalized");
+  it("can send a new tweet from a different author", async () => {
+    const otherUser = anchor.web3.Keypair.generate();
+    const signature = await program.provider.connection.requestAirdrop(
+      otherUser.publicKey,
+      1000000000
+    );
+    await program.provider.connection.confirmTransaction(signature, "finalized");
 
-  //   const tweet = anchor.web3.Keypair.generate();
-  //   await program.methods.sendTweet("veganism", "Yay Tofu").accounts(
-  //     {        
-  //       tweet: tweet.publicKey,
-  //       author: otherUser.publicKey,
-  //       systemProgram: anchor.web3.SystemProgram.programId,
-  //     }
-  //   )
-  //   .signers([otherUser, tweet])
-  //   .rpc();      
+    const tweet = anchor.web3.Keypair.generate();
+    await program.methods.sendTweet("veganism", "Yay Tofu").accounts(
+      {        
+        tweet: tweet.publicKey,
+        author: otherUser.publicKey,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      }
+    )
+    .signers([otherUser, tweet])
+    .rpc();      
 
-  //   const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
+    const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
 
-  //   // Ensure it has the right data.
-  //   assert.equal(
-  //     tweetAccount.author.toBase58(),
-  //     otherUser.publicKey.toBase58()
-  //   );
-  //   assert.equal(tweetAccount.topic, "veganism");
-  //   assert.equal(tweetAccount.content, "Yay Tofu");
-  //   assert.ok(tweetAccount.timestamp);
-  // });
+    // Ensure it has the right data.
+    assert.equal(
+      tweetAccount.author.toBase58(),
+      otherUser.publicKey.toBase58()
+    );
+    assert.equal(tweetAccount.topic, "veganism");
+    assert.equal(tweetAccount.content, "Yay Tofu");
+    assert.ok(tweetAccount.timestamp);
+  });
 
   it("can not provide a topic with more than 50 characters", async () => {
     try {
@@ -143,7 +143,7 @@ describe("solana-twitter", () => {
 
   it("can fetch all tweets", async () => {
     const tweetAccounts = await program.account.tweet.all();
-    assert.equal(tweetAccounts.length, 2);
+    assert.equal(tweetAccounts.length, 3);
   });
 
   it("can filter tweets by author", async () => {
@@ -166,25 +166,25 @@ describe("solana-twitter", () => {
     );
   });
 
-  // it("can filter tweets by topics", async () => {
-  //   const tweetAccounts = await program.account.tweet.all([
-  //     {
-  //       memcmp: {
-  //         offset:
-  //           8 + // Discriminator
-  //           32 + // Author public key
-  //           8 + // Timestamp
-  //           4, // Topic String prefix
-  //         bytes: bs58.encode(Buffer.from("veganism")),
-  //       },
-  //     },
-  //   ]);
+  it("can filter tweets by topics", async () => {
+    const tweetAccounts = await program.account.tweet.all([
+      {
+        memcmp: {
+          offset:
+            8 + // Discriminator
+            32 + // Author public key
+            8 + // Timestamp
+            4, // Topic String prefix
+          bytes: bs58.encode(Buffer.from("veganism")),
+        },
+      },
+    ]);
 
-  //   assert.equal(tweetAccounts.length, 1);
-  //   assert.ok(
-  //     tweetAccounts.every((tweetAccount) => {
-  //       return tweetAccount.account.topic === "veganism";
-  //     })
-  //   );
-  // });
+    assert.equal(tweetAccounts.length, 1);
+    assert.ok(
+      tweetAccounts.every((tweetAccount) => {
+        return tweetAccount.account.topic === "veganism";
+      })
+    );
+  });
 });
