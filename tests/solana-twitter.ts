@@ -57,36 +57,36 @@ describe("solana-twitter", () => {
     assert.ok(tweetAccount.timestamp);
   });
 
-  it("can send a new tweet from a different author", async () => {
-    const otherUser = anchor.web3.Keypair.generate();
-    const signature = await program.provider.connection.requestAirdrop(
-      otherUser.publicKey,
-      1000000000
-    );
-    await program.provider.connection.confirmTransaction(signature, "finalized");
+  // it("can send a new tweet from a different author", async () => {
+  //   const otherUser = anchor.web3.Keypair.generate();
+  //   const signature = await program.provider.connection.requestAirdrop(
+  //     otherUser.publicKey,
+  //     1000000000
+  //   );
+  //   await program.provider.connection.confirmTransaction(signature, "finalized");
 
-    const tweet = anchor.web3.Keypair.generate();
-    await program.methods.sendTweet("veganism", "Yay Tofu").accounts(
-      {        
-        tweet: tweet.publicKey,
-        author: otherUser.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      }
-    )
-    .signers([otherUser, tweet])
-    .rpc();      
+  //   const tweet = anchor.web3.Keypair.generate();
+  //   await program.methods.sendTweet("veganism", "Yay Tofu").accounts(
+  //     {        
+  //       tweet: tweet.publicKey,
+  //       author: otherUser.publicKey,
+  //       systemProgram: anchor.web3.SystemProgram.programId,
+  //     }
+  //   )
+  //   .signers([otherUser, tweet])
+  //   .rpc();      
 
-    const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
+  //   const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
 
-    // Ensure it has the right data.
-    assert.equal(
-      tweetAccount.author.toBase58(),
-      otherUser.publicKey.toBase58()
-    );
-    assert.equal(tweetAccount.topic, "veganism");
-    assert.equal(tweetAccount.content, "Yay Tofu");
-    assert.ok(tweetAccount.timestamp);
-  });
+  //   // Ensure it has the right data.
+  //   assert.equal(
+  //     tweetAccount.author.toBase58(),
+  //     otherUser.publicKey.toBase58()
+  //   );
+  //   assert.equal(tweetAccount.topic, "veganism");
+  //   assert.equal(tweetAccount.content, "Yay Tofu");
+  //   assert.ok(tweetAccount.timestamp);
+  // });
 
   it("can not provide a topic with more than 50 characters", async () => {
     try {
@@ -103,7 +103,6 @@ describe("solana-twitter", () => {
       .rpc();      
 
     } catch (error) {
-      console.log("Error: ", error.error);
       assert.equal(
         error.error.errorMessage,
         "The provided topic should be 50 characters long maximum."
@@ -116,31 +115,31 @@ describe("solana-twitter", () => {
     );
   });
 
-  // it("can not provide a content with more than280 characters", async () => {
-  //   try {
-  //     // Call the "SendTweet" instruction on behalf of this other user.
-  //     const tweet = anchor.web3.Keypair.generate();
-  //     const contentWith51Chars = "x".repeat(281);
-  //     await program.rpc.sendTweet("Hello", contentWith51Chars, {
-  //       accounts: {
-  //         tweet: tweet.publicKey,
-  //         author: program.provider.wallet.publicKey,
-  //         systemProgram: anchor.web3.SystemProgram.programId,
-  //       },
-  //       signers: [tweet],
-  //     });
-  //   } catch (error) {
-  //     assert.equal(
-  //       error.msg,
-  //       "The provided content should be 280 characters long maximum."
-  //     );
-  //     return;
-  //   }
+  it("can not provide a content with more than280 characters", async () => {
+    try {
+      const tweet = anchor.web3.Keypair.generate();
+      const contentWith51Chars = "x".repeat(281);
+      await program.methods.sendTweet("tropical food", contentWith51Chars).accounts(
+        {        
+          tweet: tweet.publicKey,
+          author: program.provider.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        }
+      )
+      .signers([tweet])
+      .rpc();      
+    } catch (error) {
+      assert.equal(
+        error.error.errorMessage,
+        "The provided content should be 280 characters long maximum."
+      );
+      return;
+    }
 
-  //   assert.fail(
-  //     "The instruction should have failed with a 281-character content."
-  //   );
-  // });
+    assert.fail(
+      "The instruction should have failed with a 281-character content."
+    );
+  });
 
   // it("can fetch all tweets", async () => {
   //   const tweetAccounts = await program.account.tweet.all();
