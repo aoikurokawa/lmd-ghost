@@ -5,7 +5,6 @@ import Post from "../Post";
 import TweetBox from "../TweetBox";
 import { IRootState } from "../../store/index";
 import { fetchTweets } from "../../store/tweet/async-actions";
-import styles from "./Feed.module.css";
 
 function Feed() {
   const [posts, setPosts] = useState([]);
@@ -20,8 +19,8 @@ function Feed() {
   }, [data]);
 
   return (
-    <div className={styles.feed}>
-      <div className={styles.feed__header}>
+    <div className="flex-1 min-w-fit overflow-y-scroll">
+      <div className="sticky top-0 bg-white z-50 px-4 py-5">
         <h2>Home</h2>
       </div>
       {data.walletAddress ? (
