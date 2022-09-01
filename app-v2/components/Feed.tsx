@@ -20,9 +20,9 @@ function Feed() {
 
   return (
     <div className="flex-1 min-w-fit overflow-y-scroll">
-      <div className="sticky top-0 bg-white z-50 px-4 py-5">
+      {/* <div className="bg-white z-50 px-4 py-5">
         <h2>Home</h2>
-      </div>
+      </div> */}
       <TweetBox />
       {/* {data.walletAddress ? (
         

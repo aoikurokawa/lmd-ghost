@@ -14,20 +14,8 @@ import React, { useMemo, useState } from "react";
 import SidebarOption from "./SidebarOption";
 // import { ActionType, ChainAttr } from "../../store/chain/types";
 
-require("@solana/wallet-adapter-react-ui/styles.css");
-
-// const useStyles = makeStyles({
-//   walletButton: {
-//     width: "100%",
-//     textOverflow: "ellipsis",
-//     overflow: "hidden",
-//     whiteSpace: "nowrap",
-//   },
-// });
-
 function Sidebar() {
   const [walletAddress, setWalletAddress] = useState<string>();
-  // const classes = useStyles();
   // const dispatch = useDispatch();
 
   const connectWallet = async () => {
@@ -46,7 +34,7 @@ function Sidebar() {
     }
   };
   return (
-    <div className="w-60 pt-5 pl-5 pr-5 border">
+    <div className="w-60 pt-5 pl-5 pr-5 border h-full">
       {/* <TwitterIcon className="text-lg ml-5 mb-5" /> */}
       <SidebarOption text="Home" active={true} />
       <SidebarOption text="Explore" />
@@ -60,15 +48,6 @@ function Sidebar() {
       <button className="border-none text-white font-bold rounded-2xl h-12 mt-5 bg-black w-full">
         Tweet
       </button>
-
-      {/* <button
-        className="bg-[#512da8] border-none text-white font-bold rounded-2xl h-12 mt-5 w-full p-2"
-        onClick={connectWallet}
-      >
-        <p className="truncate overflow-hidden whitespace-nowrap">
-          {walletAddress ? walletAddress : "Connect Wallet"}
-        </p>
-      </button> */}
     </div>
   );
 }

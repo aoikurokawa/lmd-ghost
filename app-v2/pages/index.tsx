@@ -7,17 +7,13 @@ import Navbar from "../components/Navbar";
 
 const Home: NextPage = () => {
   return (
-    <>
-      <header>
-        <Navbar />
-      </header>
-      <div className="flex h-screen max-w-7xl ml-auto mr-auto">
-        <main>
-          <Sidebar />
-          <Feed />
-        </main>
+    <div className="">
+      <Navbar />
+      <div className="flex max-w-7xl ml-auto mr-auto mt-20">
+        <Sidebar />
+        <Feed />
       </div>
-    </>
+    </div>
   );
 };
 
