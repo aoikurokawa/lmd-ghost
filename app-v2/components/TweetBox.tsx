@@ -1,25 +1,48 @@
 // import { Avatar, Button } from "@mui/material";
+import { web3 } from "@project-serum/anchor";
+import { useWallet } from "@solana/wallet-adapter-react";
 import React, { useState } from "react";
+import { getProgram } from "../api";
 
 function TweetBox() {
-  const [tweetMessage, setTweetMessage] = useState("");
-  const [tweetImage, setTweetImage] = useState("");
+  const [tweetTopic, setTweetTopic] = useState("");
+  const [tweetContent, setTweetContent] = useState("");
 
-  const sendTweet = (e: any) => {
+  const { connected, wallet, publicKey, signTransaction, signAllTransactions } =
+    useWallet();
+
+  const signerWallet = {
+    publicKey: publicKey!,
+    signTransaction: signTransaction!,
+    signAllTransactions: signAllTransactions!,
+  };
+
+  const sendTweet = async (e: any) => {
     e.preventDefault();
 
-    // db.collection("posts").add({
-    //   username: "happystark",
-    //   displayName: "Atharva Deosthale",
-    //   avatar:
-    //     "https://scontent-bom1-1.xx.fbcdn.net/v/t1.0-1/c0.33.200.200a/p200x200/51099653_766820610355014_8315780769297465344_o.jpg?_nc_cat=101&_nc_sid=7206a8&_nc_ohc=c1qBHkwAgVsAX8KynKU&_nc_ht=scontent-bom1-1.xx&oh=340b05bea693dd1671296e0c2d004bb3&oe=5F84CA62",
-    //   verified: true,
-    //   text: tweetMessage,
-    //   image: tweetImage,
-    // });
+    const tweet = web3.Keypair.generate();
 
-    setTweetMessage("");
-    setTweetImage("");
+    const { program, provider } = getProgram(signerWallet);
+
+    try {
+      await program.methods
+        .sendTweet(tweetTopic, tweetContent)
+        .accounts({
+          author: provider.wallet.publicKey,
+          tweet: tweet.publicKey,
+          systemProgram: web3.SystemProgram.programId,
+        })
+        .signers([tweet])
+        .rpc();
+
+      const tweetAccount = await program.account.tweet.fetch(tweet.publicKey);
+
+      console.log(tweetAccount);
+    } catch (e) {
+      console.error(e);
+    }
+
+    setTweetContent("");
   };
 
   return (
@@ -27,20 +50,28 @@ function TweetBox() {
       <form className="flex flex-col">
         <div className="flex p-5">
           <textarea
-            value={tweetMessage}
-            onChange={(e) => setTweetMessage(e.target.value)}
+            value={tweetContent}
+            onChange={(e) => setTweetContent(e.target.value)}
             placeholder="What's happening?"
             rows={2}
             className="ml-5 text-xl focus:outline-none w-full border p-4 rounded-md"
           />
         </div>
-        <button
-          onClick={sendTweet}
-          type="submit"
-          className="border-none text-white font-bold rounded-2xl h-11 mt-1 ml-auto bg-black w-40"
-        >
-          Tweet
-        </button>
+        <div className="px-5 flex justify-between">
+          <input
+            className="ml-5 border focus:outline-none rounded-md p-4"
+            placeholder="#topic"
+            value={tweetTopic}
+            onChange={(e) => setTweetTopic(e.target.value)}
+          />
+          <button
+            onClick={sendTweet}
+            type="submit"
+            className="border-none text-white font-bold rounded-2xl h-11 mt-1 ml-auto bg-black w-40"
+          >
+            Tweet
+          </button>
+        </div>
       </form>
     </div>
   );
