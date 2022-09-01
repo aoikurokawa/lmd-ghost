@@ -3,13 +3,21 @@ import { NextPage } from "next";
 
 import Sidebar from "../components/Sidebar";
 import Feed from "../components/Feed";
+import Navbar from "../components/Navbar";
 
 const Home: NextPage = () => {
   return (
-    <div className="flex h-screen max-w-7xl ml-auto mr-auto">
-      <Sidebar />
-      <Feed />
-    </div>
+    <>
+      <header>
+        <Navbar />
+      </header>
+      <div className="flex h-screen max-w-7xl ml-auto mr-auto">
+        <main>
+          <Sidebar />
+          <Feed />
+        </main>
+      </div>
+    </>
   );
 };
 

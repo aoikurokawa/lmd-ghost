@@ -13,10 +13,6 @@ import React, { useMemo, useState } from "react";
 
 import SidebarOption from "./SidebarOption";
 // import { ActionType, ChainAttr } from "../../store/chain/types";
-import {
-  WalletMultiButton,
-  WalletDisconnectButton,
-} from "@solana/wallet-adapter-react-ui";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
@@ -73,8 +69,6 @@ function Sidebar() {
           {walletAddress ? walletAddress : "Connect Wallet"}
         </p>
       </button> */}
-      <WalletMultiButton />
-      <WalletDisconnectButton />
     </div>
   );
 }
