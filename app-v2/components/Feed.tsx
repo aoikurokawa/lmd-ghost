@@ -16,7 +16,8 @@ interface IFeed {
 }
 
 function Feed() {
-  const [posts, setPosts] = useState<IFeed[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { connected, wallet, publicKey, signTransaction, signAllTransactions } =
     useWallet();
 
@@ -27,27 +28,27 @@ function Feed() {
   };
 
   useEffect(() => {
-    const data = fetchTweets();
-
-    // @ts-ignore
-    setPosts(data);
+    setLoading(true);
 
     const fetchAll = async () => {
+      let dataArray: any[] = [];
       try {
         const tweets = await fetchAllTweets(signerWallet);
-        console.log("Tweets: ", tweets);
+        tweets.map((tweet) => {
+          console.log(tweet);
+          dataArray.push(tweet.account);
+        });
+        setPosts(dataArray);
+        setLoading(false);
       } catch (e) {
         console.error(e);
+        setLoading(false);
       }
     };
 
     if (connected) {
       fetchAll();
     }
-
-    // db.collection("posts").onSnapshot((snapshot) => {
-    //   setPosts(snapshot.docs.map((doc) => doc.data()));
-    // });
   }, [connected, wallet]);
 
   return (
@@ -60,10 +61,11 @@ function Feed() {
             Connect your wallet to start tweeting...
           </div>
         )}
+
         {posts.map((post) => (
           <Post
-            key={post.id}
-            publicKey={post.publicKey}
+            key={`#post.author.toBase58()`}
+            publicKey={post.author.toBase58()}
             topic={post.topic}
             content={post.content}
           />
