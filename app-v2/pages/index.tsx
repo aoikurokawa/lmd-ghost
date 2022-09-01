@@ -1,23 +1,8 @@
 import React from "react";
-
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { NextPage } from "next";
 
 import Sidebar from "../components/Sidebar";
 import Feed from "../components/Feed";
-import { NextPage } from "next";
-
-// const AppWithProvider = () => {
-//   const wallets = [new PhantomWalletAdapter({ network: endpoint })];
-//   return (
-//     <ConnectionProvider endpoint={endpoint}>
-//       <WalletProvider wallets={wallets} autoConnect>
-//         <WalletModalProvider>
-//           <App />
-//         </WalletModalProvider>
-//       </WalletProvider>
-//     </ConnectionProvider>
-//   );
-// };
 
 const Home: NextPage = () => {
   return (
