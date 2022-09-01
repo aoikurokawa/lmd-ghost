@@ -1,14 +1,17 @@
 # Solana-twitter
 
-## Description
+## Overview
+
+<img width="1461" alt="Screen Shot 2022-09-01 at 9 29 25 PM" src="https://user-images.githubusercontent.com/62386689/187939830-e9fc31b2-2a93-4547-96f4-ec3ab7d86137.png">
 
 
 ## Tech Stack
 
-- TypeScript, React.js, Anchor, Rust
-- App works on only Solana localnet
+- [Anchor](https://www.anchor-lang.com/)
+- [Nextjs](https://nextjs.org/)
+- [Tailwindcss](https://tailwindcss.com/)
 
-## Usage
+## Get started
 
 1. Run Solana localnet
 
