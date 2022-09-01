@@ -1,5 +1,4 @@
 use anchor_lang::prelude::*;
-use anchor_lang::solana_program::system_program;
 
 declare_id!("9dR6c95cjzNhS4rnhzgZpRAhUmVrNq5w6oHyPs5bqAev");
 
@@ -12,12 +11,10 @@ pub mod solana_twitter {
         let clock: Clock = Clock::get().unwrap();
 
         if topic.chars().count() > 50 {
-            // Return an error
             return Err(ErrorCode::TopicTooLong.into());
         }
 
         if content.chars().count() > 280 {
-            // Return an error
             return Err(ErrorCode::ContentTooLong.into());
         }
         tweet.author = *author.key;
@@ -25,6 +22,26 @@ pub mod solana_twitter {
         tweet.topic = topic;
         tweet.content = content;
 
+        Ok(())
+    }
+
+    pub fn update_tweet(ctx: Context<UpdateTweet>, topic: String, content: String) -> Result<()> {
+        let tweet = &mut ctx.accounts.tweet;
+        if topic.chars().count() > 50 {
+            return Err(ErrorCode::TopicTooLong.into());
+        }
+
+        if content.chars().count() > 280 {
+            return Err(ErrorCode::ContentTooLong.into());
+        }
+
+        tweet.topic = topic;
+        tweet.content = content;
+
+        Ok(())
+    }
+
+    pub fn delete_tweet(_ctx: Context<DeleteTweet>) -> Result<()> {
         Ok(())
     }
 }
@@ -38,7 +55,20 @@ pub struct SendTweet<'info> {
     pub system_program: Program<'info, System>,
 }
 
-// 1. Define the structure of the Tweet account.
+#[derive(Accounts)]
+pub struct UpdateTweet<'info> {
+    #[account(mut, has_one = author)]
+    pub tweet: Account<'info, Tweet>,
+    pub author: Signer<'info>,
+}
+
+#[derive(Accounts)]
+pub struct DeleteTweet<'info> {
+    #[account(mut, has_one = author, close = author)]
+    pub tweet: Account<'info, Tweet>,
+    pub author: Signer<'info>,
+}
+
 #[account]
 pub struct Tweet {
     pub author: Pubkey,
