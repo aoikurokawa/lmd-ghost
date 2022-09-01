@@ -1,35 +1,37 @@
 import React, { useMemo, useState } from "react";
-import TwitterIcon from "@mui/icons-material/Twitter";
-import HomeIcon from "@mui/icons-material/Home";
-import SearchIcon from "@mui/icons-material/Search";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import ListAltIcon from "@mui/icons-material/ListAlt";
-import PermIdentityIcon from "@mui/icons-material/PermIdentity";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import { Button } from "@mui/material";
-import { makeStyles } from "@mui/styles";
+// import TwitterIcon from "@mui/icons-material/Twitter";
+// import HomeIcon from "@mui/icons-material/Home";
+// import SearchIcon from "@mui/icons-material/Search";
+// import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
+// import MailOutlineIcon from "@mui/icons-material/MailOutline";
+// import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+// import ListAltIcon from "@mui/icons-material/ListAlt";
+// import PermIdentityIcon from "@mui/icons-material/PermIdentity";
+// import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+// import { makeStyles } from "@mui/styles";
 import { useDispatch } from "react-redux";
 
 import SidebarOption from "../SidebarOption";
 import { ActionType, ChainAttr } from "../../store/chain/types";
-import { WalletMultiButton } from "@solana/wallet-adapter-material-ui";
+import {
+  WalletMultiButton,
+  WalletDisconnectButton,
+} from "@solana/wallet-adapter-react-ui";
 
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const useStyles = makeStyles({
-  walletButton: {
-    width: "100%",
-    textOverflow: "ellipsis",
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-  },
-});
+// const useStyles = makeStyles({
+//   walletButton: {
+//     width: "100%",
+//     textOverflow: "ellipsis",
+//     overflow: "hidden",
+//     whiteSpace: "nowrap",
+//   },
+// });
 
 function Sidebar() {
   const [walletAddress, setWalletAddress] = useState<string>();
-  const classes = useStyles();
+  // const classes = useStyles();
   // const dispatch = useDispatch();
 
   const connectWallet = async () => {
@@ -49,15 +51,15 @@ function Sidebar() {
   };
   return (
     <div className="w-60 pt-5 pl-5 pr-5 border">
-      <TwitterIcon className="text-lg ml-5 mb-5" />
-      <SidebarOption Icon={HomeIcon} text="Home" active={true} />
-      <SidebarOption Icon={SearchIcon} text="Explore" />
-      <SidebarOption Icon={NotificationsNoneIcon} text="Notifications" />
-      <SidebarOption Icon={MailOutlineIcon} text="Messages" />
-      <SidebarOption Icon={BookmarkBorderIcon} text="Bookmarks" />
-      <SidebarOption Icon={ListAltIcon} text="Lists" />
-      <SidebarOption Icon={PermIdentityIcon} text="Profile" />
-      <SidebarOption Icon={MoreHorizIcon} text="More" />
+      {/* <TwitterIcon className="text-lg ml-5 mb-5" /> */}
+      <SidebarOption text="Home" active={true} />
+      <SidebarOption text="Explore" />
+      <SidebarOption text="Notifications" />
+      <SidebarOption text="Messages" />
+      <SidebarOption text="Bookmarks" />
+      <SidebarOption text="Lists" />
+      <SidebarOption text="Profile" />
+      <SidebarOption text="More" />
 
       <button className="border-none text-white font-bold rounded-2xl h-12 mt-5 bg-black w-full">
         Tweet
@@ -72,6 +74,7 @@ function Sidebar() {
         </p>
       </button> */}
       <WalletMultiButton />
+      <WalletDisconnectButton />
     </div>
   );
 }

@@ -13,18 +13,14 @@ import {
   SolletWalletAdapter,
   TorusWalletAdapter,
 } from "@solana/wallet-adapter-wallets";
-import {
-  WalletModalProvider,
-  WalletDisconnectButton,
-  WalletMultiButton,
-} from "@solana/wallet-adapter-react-ui";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { clusterApiUrl } from "@solana/web3.js";
 import App from "../pages";
 
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
 
-const wallets = [new PhantomWalletAdapter()]
+const wallets = [new PhantomWalletAdapter()];
 
 export const Wallet: FC = () => {
   // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
@@ -36,7 +32,6 @@ export const Wallet: FC = () => {
   // @solana/wallet-adapter-wallets includes all the adapters but supports tree shaking and lazy loading --
   // Only the wallets you configure here will be compiled into your application, and only the dependencies
   // of wallets that your users connect to will be loaded.
-  
 
   return (
     <ConnectionProvider endpoint="http://127.0.0.1:8899">
@@ -51,10 +46,10 @@ export const Wallet: FC = () => {
 
 const AppWithProvider = () => {
   <ConnectionProvider endpoint="http://127.0.0.1:8899">
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <App />
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
-}
+    <WalletProvider wallets={wallets} autoConnect>
+      <WalletModalProvider>
+        <App />
+      </WalletModalProvider>
+    </WalletProvider>
+  </ConnectionProvider>;
+};

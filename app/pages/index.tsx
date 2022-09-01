@@ -1,17 +1,10 @@
 import React from "react";
 
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-wallets";
-
-import { clusterApiUrl, ConfirmOptions } from "@solana/web3.js";
 
 import Sidebar from "../src/components/Sidebar";
 import Feed from "../src/components/Feed";
 import { NextPage } from "next";
-
-require("@solana/wallet-adapter-react-ui/styles.css");
-
-const endpoint = "http://127.0.0.1:8899";
 
 // const AppWithProvider = () => {
 //   const wallets = [new PhantomWalletAdapter({ network: endpoint })];
