@@ -4,7 +4,7 @@
 
 ## Tech Stack
 
-- [Rust](https://www.anchor-lang.com/)
+- [Rust](https://www.rust-lang.org/)
 
 ## Get started
 
