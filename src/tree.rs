@@ -35,7 +35,38 @@ impl Tree {
     }
 
     pub fn add_node(&mut self, hash: Hash256, block_hash: Hash256) -> Option<()> {
-        None
+        let mut prev_in_tree = self.find_prev_in_tree(hash, 0..self.slots_at_height.len())?.clone();
+
+        let mut node = Node {
+            block_hash,
+            parent_hash: Some(prev_in_tree.block_hash),
+            ..Node::default()
+        };
+
+        if prev_in_tree.does_not_have_children() {
+            node.parent_hash = Some(prev_in_tree.block_hash);
+            prev_in_tree.children.push(hash);
+        } else {
+            for child_hash in prev_in_tree.children {
+                let ancestor_hash = self.find_least_common_ancestor(hash, child_hash)?;
+                if ancestor_hash != prev_in_tree.block_hash {
+                    let child = self.nodes.get_mut(&child_hash)?;
+                    let common_ancestor = Node {
+                        block_hash: ancestor_hash,
+                        parent_hash: Some(prev_in_tree.block_hash),
+                        ..Node::default()
+                    };
+                    child.parent_hash = Some(common_ancestor.block_hash);
+                    node.parent_hash = Some(common_ancestor.block_hash);
+
+                    self.nodes.insert(common_ancestor.block_hash, common_ancestor);
+                }
+            }
+        }
+
+        self.nodes.insert(hash, node);
+
+        Some(())
     }
 
     fn find_prev_in_tree(&mut self, hash: Hash256, range: Range<Height>) -> Option<&mut Node> {
