@@ -63,7 +63,11 @@ impl Ghost {
         Some(o)
     }
 
-    pub fn get_clear_winner(&self, latest_votes: HashMap<[u8; 32], u32>, h: usize) {
+    pub fn get_clear_winner(
+        &self,
+        latest_votes: HashMap<[u8; 32], u32>,
+        h: usize,
+    ) -> Option<Vec<u8>> {
         let mut at_height = HashMap::new();
         let mut total_vote_count = 0;
 
@@ -73,9 +77,19 @@ impl Ghost {
                 total_vote_count += 1;
             }
 
+            let mut anc_height = at_height.entry(&anc.unwrap()).or_insert(0);
+            *anc_height += v;
 
-            
+            at_height.insert(&anc.unwrap(), *anc_height);
         }
+
+        for (k, v) in at_height.iter() {
+            if *v >= total_vote_count / 2 {
+                return Some(k.to_vec());
+            }
+        }
+
+        None
     }
 }
 

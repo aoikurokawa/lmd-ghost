@@ -35,7 +35,9 @@ impl Tree {
     }
 
     pub fn add_node(&mut self, hash: Hash256, block_hash: Hash256) -> Option<()> {
-        let mut prev_in_tree = self.find_prev_in_tree(hash, 0..self.slots_at_height.len())?.clone();
+        let mut prev_in_tree = self
+            .find_prev_in_tree(hash, 0..self.slots_at_height.len())?
+            .clone();
 
         let mut node = Node {
             block_hash,
@@ -59,7 +61,8 @@ impl Tree {
                     child.parent_hash = Some(common_ancestor.block_hash);
                     node.parent_hash = Some(common_ancestor.block_hash);
 
-                    self.nodes.insert(common_ancestor.block_hash, common_ancestor);
+                    self.nodes
+                        .insert(common_ancestor.block_hash, common_ancestor);
                 }
             }
         }
