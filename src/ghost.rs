@@ -35,6 +35,10 @@ impl Ghost {
         }
     }
 
+    pub fn get_height(&self, block: &[u8; 32]) -> Option<usize> {
+        Some(self.blocks.get(block).unwrap().0)
+    }
+
     pub fn get_ancestor(&self, block: [u8; 32], at_height: usize) -> Option<[u8; 32]> {
         let h = self.blocks.get(&block).unwrap().0;
         if at_height >= h {
@@ -205,10 +209,15 @@ pub fn ghost() -> Vec<u8> {
             for (k, v) in latest_votes.iter() {
                 let child = ghost.get_ancestor(k, height + 1);
                 if child.is_some() {
-                    // head =
+                    let child_vote = child_votes.entry(child.unwrap()).or_default(0);
+                    child_votes.insert(child.unwrap(), child_vote + v);
                 }
             }
+            head = choose_best_child(child_votes);
         }
+
+        height = get_height(head);
+        let mut deletes = Vec::new();
     }
 
     Vec::new()
