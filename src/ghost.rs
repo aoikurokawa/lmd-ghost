@@ -122,7 +122,10 @@ pub fn max_known_height(index: usize) -> Option<usize> {
     h.get(index).copied()
 }
 
+pub fn choose_best_child(votes: HashMap<u8, u64>) {}
+
 pub fn ghost() -> Vec<u8> {
+    let mut ghost = Ghost::new();
     let mut latest_votes = HashMap::new();
     let mut balances = get_balances();
 
@@ -132,7 +135,7 @@ pub fn ghost() -> Vec<u8> {
         *entry += *balance;
     }
 
-    let head = vec![0; 32];
+    let mut head = vec![0; 32];
     let height = 0;
 
     let mut children = get_children();
@@ -143,7 +146,32 @@ pub fn ghost() -> Vec<u8> {
         }
         let max_known_height = max_known_height(0).unwrap();
         let step = get_power_of_2_below(max_known_height - height);
-        while step > 0 {}
+        while step > 0 {
+            let possible_clear_winner = ghost.get_clear_winner(latest_votes, height - (height % step) + step);
+
+            if possible_clear_winner.is_some() {
+                head = possible_clear_winner.unwrap();
+                break;
+            }
+            step /= 2;
+        }
+
+        if step > 0 {
+            continue;
+        } else if c.len() == 1 {
+            head = c.get(0).unwrap();
+        } else {
+            let child_votes = HashMap::new();
+            for x in c.iter() {
+                child_votes.insert(*x, 0.01);
+            }
+            for (k, v) in latest_votes.iter() {
+                let child = ghost.get_ancestor(k, height + 1);
+                if child.is_some() {
+                    // head = 
+                }
+            }
+        }
     }
 
     Vec::new()
