@@ -6,10 +6,11 @@ const BLOCK_ONCE_EVERY: i32 = 1024;
 const SIM_LENGTH: i32 = 131072;
 
 struct Ghost {
-    blocks: HashMap<[u8; 32], (usize, Option<()>)>,
+    blocks: HashMap<Vec<u8>, (usize, Option<()>)>,
+    children: HashMap<Vec<u8>, Vec<u8>>,
     height_to_bytes: Vec<[u8; 4]>,
-    cache: HashMap<Vec<u8>, [u8; 32]>,
-    ancestors: Vec<HashMap<[u8; 32], [u8; 32]>>,
+    cache: HashMap<Vec<u8>, Vec<u8>>,
+    ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>>,
     logz: Vec<u8>,
 }
 
@@ -17,17 +18,18 @@ impl Ghost {
     pub fn new() -> Self {
         let height_to_bytes: Vec<[u8; 4]> = (1..10000).map(|i: i32| i.to_be_bytes()).collect();
 
-        let mut ancestors: Vec<HashMap<[u8; 32], [u8; 32]>> = Vec::new();
+        let mut ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>> = Vec::new();
         for _ in 0..16 {
             let mut ancestor_map = HashMap::new();
-            let key = [0u8; 32];
-            let value = [0u8; 32];
+            let key = Vec::from([0u8; 32]);
+            let value = Vec::from([0u8; 32]);
             ancestor_map.insert(key, value);
             ancestors.push(ancestor_map);
         }
 
         Self {
             blocks: HashMap::new(),
+            children: HashMap::new(),
             height_to_bytes,
             cache: HashMap::new(),
             ancestors,
@@ -35,11 +37,11 @@ impl Ghost {
         }
     }
 
-    pub fn get_height(&self, block: &[u8; 32]) -> Option<usize> {
+    pub fn get_height(&self, block: &Vec<u8>) -> Option<usize> {
         Some(self.blocks.get(block).unwrap().0)
     }
 
-    pub fn get_ancestor(&self, block: [u8; 32], at_height: usize) -> Option<[u8; 32]> {
+    pub fn get_ancestor(&self, block: Vec<u8>, at_height: usize) -> Option<Vec<u8>> {
         let h = self.blocks.get(&block).unwrap().0;
         if at_height >= h {
             if at_height > h {
@@ -54,7 +56,7 @@ impl Ghost {
         cache_key.extend_from_slice(bytes);
 
         if self.cache.contains_key(&cache_key) {
-            return self.cache.get(&cache_key).copied();
+            return self.cache.get(&cache_key).cloned();
         }
 
         let log = self.logz.get(h - at_height - 1).unwrap();
@@ -69,7 +71,7 @@ impl Ghost {
 
     pub fn get_clear_winner(
         &self,
-        latest_votes: HashMap<[u8; 32], u32>,
+        latest_votes: HashMap<Vec<u8>, u32>,
         h: usize,
     ) -> Option<Vec<u8>> {
         let mut at_height = HashMap::new();
@@ -114,11 +116,6 @@ pub fn get_balances() -> Vec<u64> {
 pub fn get_balance(index: usize) -> u64 {
     let mut balances = vec![1; NODE_COUNT as usize];
     balances[index]
-}
-
-pub fn get_children() -> HashMap<[u8; 32], Vec<u8>> {
-    let map = HashMap::new();
-    map
 }
 
 pub fn max_known_height(index: usize) -> Option<usize> {
@@ -166,19 +163,19 @@ pub fn choose_best_child(votes: HashMap<[u8; 8], u64>) -> Option<[u8; 8]> {
 
 pub fn ghost() -> Vec<u8> {
     let mut ghost = Ghost::new();
-    let mut latest_votes = HashMap::new();
+    let mut latest_votes: HashMap<Vec<u8>, u64> = HashMap::new();
     let mut balances = get_balances();
 
     for (i, balance) in balances.iter().enumerate() {
         let message = latest_message(i);
-        let entry = latest_votes.entry(i).or_insert(0);
+        let entry = latest_votes.entry(message.to_vec()).or_insert(0u64);
         *entry += *balance;
     }
 
     let mut head = vec![0; 32];
     let height = 0;
 
-    let mut children = get_children();
+    let mut children = ghost.children;
     loop {
         let c = children.entry(head).or_insert(vec![]);
         if c.is_empty() {
@@ -218,9 +215,17 @@ pub fn ghost() -> Vec<u8> {
 
         height = get_height(head);
         let mut deletes = Vec::new();
-    }
+        for k in &latest_votes {
+            let anc = ghost.get_ancestor(k, height).unwrap();
+            if anc.to_vec() != head {
+                deletes.push(k);
+            }
+        }
 
-    Vec::new()
+        for k in deletes.iter() {
+            latest_votes.remove(k);
+        }
+    }
 }
 
 pub fn get_power_of_2_below(x: usize) -> u64 {
