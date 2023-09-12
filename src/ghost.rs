@@ -122,7 +122,43 @@ pub fn max_known_height(index: usize) -> Option<usize> {
     h.get(index).copied()
 }
 
-pub fn choose_best_child(votes: HashMap<u8, u64>) {}
+pub fn choose_best_child(votes: HashMap<[u8; 8], u64>) -> Option<[u8; 8]> {
+    let mut bitmask = 0;
+
+    for bit in (0..=255).rev() {
+        let mut zero_votes = 0;
+        let mut one_votes = 0;
+        let mut single_candidate = None;
+
+        for candidate in votes.keys() {
+            let mut votes_for_candidate = votes.get(candidate);
+            let mut candidate_as_int = u64::from_be_bytes(*candidate);
+
+            if candidate_as_int >> (bit + 1) != bitmask {
+                continue;
+            }
+            if (candidate_as_int >> bit) % 2 == 0 {
+                zero_votes += votes_for_candidate.unwrap();
+            } else {
+                one_votes += votes_for_candidate.unwrap();
+            }
+
+            if single_candidate.is_none() {
+                single_candidate = Some(candidate);
+            } else {
+                single_candidate = None;
+            }
+        }
+
+        let vote = if one_votes > zero_votes { 1 } else { 0 };
+        bitmask = (bitmask * 2) + vote;
+        if single_candidate.is_some() {
+            return single_candidate.copied();
+        }
+    }
+
+    None
+}
 
 pub fn ghost() -> Vec<u8> {
     let mut ghost = Ghost::new();
@@ -147,7 +183,8 @@ pub fn ghost() -> Vec<u8> {
         let max_known_height = max_known_height(0).unwrap();
         let step = get_power_of_2_below(max_known_height - height);
         while step > 0 {
-            let possible_clear_winner = ghost.get_clear_winner(latest_votes, height - (height % step) + step);
+            let possible_clear_winner =
+                ghost.get_clear_winner(latest_votes, height - (height % step) + step);
 
             if possible_clear_winner.is_some() {
                 head = possible_clear_winner.unwrap();
@@ -168,7 +205,7 @@ pub fn ghost() -> Vec<u8> {
             for (k, v) in latest_votes.iter() {
                 let child = ghost.get_ancestor(k, height + 1);
                 if child.is_some() {
-                    // head = 
+                    // head =
                 }
             }
         }
