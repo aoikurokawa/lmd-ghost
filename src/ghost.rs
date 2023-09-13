@@ -7,7 +7,7 @@ const SIM_LENGTH: i32 = 131072;
 
 struct Ghost {
     blocks: HashMap<Vec<u8>, (usize, Option<()>)>,
-    children: HashMap<Vec<u8>, Vec<u8>>,
+    children: HashMap<Vec<u8>, Vec<Vec<u8>>>,
     height_to_bytes: Vec<[u8; 4]>,
     cache: HashMap<Vec<u8>, Vec<u8>>,
     ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>>,
@@ -41,13 +41,13 @@ impl Ghost {
         Some(self.blocks.get(block).unwrap().0)
     }
 
-    pub fn get_ancestor(&self, block: Vec<u8>, at_height: usize) -> Option<Vec<u8>> {
-        let h = self.blocks.get(&block).unwrap().0;
+    pub fn get_ancestor(&mut self, block: &Vec<u8>, at_height: usize) -> Option<Vec<u8>> {
+        let h = self.blocks.get(block).unwrap().0;
         if at_height >= h {
             if at_height > h {
                 return None;
             } else {
-                return Some(block);
+                return Some(block.clone());
             }
         }
 
@@ -63,8 +63,8 @@ impl Ghost {
         let ancestor = self.ancestors.get(*log as usize).unwrap();
         let b = ancestor.get(block.as_slice()).unwrap();
 
-        let o = self.get_ancestor(*b, at_height).unwrap();
-        self.cache.insert(cache_key, o);
+        let o = self.get_ancestor(b, at_height).unwrap();
+        self.cache.insert(cache_key, o.clone());
 
         Some(o)
     }
@@ -78,7 +78,7 @@ impl Ghost {
         let mut total_vote_count = 0;
 
         for (k, v) in latest_votes.iter() {
-            let anc = self.get_ancestor(*k, h);
+            let anc = self.get_ancestor(k, h);
             if anc.is_some() {
                 total_vote_count += 1;
             }
@@ -123,38 +123,51 @@ pub fn max_known_height(index: usize) -> Option<usize> {
     h.get(index).copied()
 }
 
-pub fn choose_best_child(votes: HashMap<[u8; 8], u64>) -> Option<[u8; 8]> {
+pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
     let mut bitmask = 0;
 
     for bit in (0..=255).rev() {
-        let mut zero_votes = 0;
-        let mut one_votes = 0;
+        let mut zero_votes = 0f64;
+        let mut one_votes = 0f64;
         let mut single_candidate = None;
 
         for candidate in votes.keys() {
             let mut votes_for_candidate = votes.get(candidate);
-            let mut candidate_as_int = u64::from_be_bytes(*candidate);
+            if candidate.len() == 8 {
+                let arr = [
+                    candidate[0],
+                    candidate[1],
+                    candidate[2],
+                    candidate[3],
+                    candidate[4],
+                    candidate[5],
+                    candidate[6],
+                    candidate[7],
+                ];
+                let mut candidate_as_int = u64::from_be_bytes(arr);
 
-            if candidate_as_int >> (bit + 1) != bitmask {
-                continue;
-            }
-            if (candidate_as_int >> bit) % 2 == 0 {
-                zero_votes += votes_for_candidate.unwrap();
-            } else {
-                one_votes += votes_for_candidate.unwrap();
-            }
+                if candidate_as_int >> (bit + 1) != bitmask {
+                    continue;
+                }
 
-            if single_candidate.is_none() {
-                single_candidate = Some(candidate);
-            } else {
-                single_candidate = None;
+                if (candidate_as_int >> bit) % 2 == 0 {
+                    zero_votes += votes_for_candidate.unwrap();
+                } else {
+                    one_votes += votes_for_candidate.unwrap();
+                }
+
+                if single_candidate.is_none() {
+                    single_candidate = Some(candidate.to_vec());
+                } else {
+                    single_candidate = None;
+                }
             }
         }
 
         let vote = if one_votes > zero_votes { 1 } else { 0 };
         bitmask = (bitmask * 2) + vote;
         if single_candidate.is_some() {
-            return single_candidate.copied();
+            return single_candidate;
         }
     }
 
@@ -172,8 +185,8 @@ pub fn ghost() -> Vec<u8> {
         *entry += *balance;
     }
 
-    let mut head = vec![0; 32];
-    let height = 0;
+    let mut head = vec![0u8; 32];
+    let mut height = 0;
 
     let mut children = ghost.children;
     loop {
@@ -182,7 +195,7 @@ pub fn ghost() -> Vec<u8> {
             return head;
         }
         let max_known_height = max_known_height(0).unwrap();
-        let step = get_power_of_2_below(max_known_height - height);
+        let mut step = get_power_of_2_below(max_known_height - height);
         while step > 0 {
             let possible_clear_winner =
                 ghost.get_clear_winner(latest_votes, height - (height % step) + step);
@@ -199,30 +212,30 @@ pub fn ghost() -> Vec<u8> {
         } else if c.len() == 1 {
             head = c[0].clone();
         } else {
-            let child_votes = HashMap::new();
+            let mut child_votes = HashMap::new();
             for x in c.iter() {
                 child_votes.insert(*x, 0.01);
             }
             for (k, v) in latest_votes.iter() {
                 let child = ghost.get_ancestor(k, height + 1);
                 if child.is_some() {
-                    let child_vote = child_votes.entry(child.unwrap()).or_default(0);
-                    child_votes.insert(child.unwrap(), child_vote + v);
+                    let child_vote = child_votes.get(&child.unwrap()).unwrap_or(&0f64);
+                    child_votes.insert(child.unwrap(), *child_vote + *v as f64);
                 }
             }
-            head = choose_best_child(child_votes);
+            head = choose_best_child(child_votes).unwrap();
         }
 
-        height = get_height(head);
+        height = ghost.get_height(&head).unwrap();
         let mut deletes = Vec::new();
-        for k in &latest_votes {
+        for (k, v) in latest_votes.iter() {
             let anc = ghost.get_ancestor(k, height).unwrap();
             if anc.to_vec() != head {
                 deletes.push(k);
             }
         }
 
-        for k in deletes.iter() {
+        for k in deletes.into_iter() {
             latest_votes.remove(k);
         }
     }
