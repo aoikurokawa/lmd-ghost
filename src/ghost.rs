@@ -60,7 +60,8 @@ impl Ghost {
         }
 
         let log = self.logz.get(h - at_height - 1).unwrap();
-        let ancestor = self.ancestors.get(*log as usize).unwrap();
+        let ancestors_clone = self.ancestors.clone();
+        let ancestor = ancestors_clone.get(*log as usize).unwrap();
         let b = ancestor.get(block.as_slice()).unwrap();
 
         let o = self.get_ancestor(b, at_height).unwrap();
