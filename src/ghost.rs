@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time};
 
 const LATENCY_FACTOR: f64 = 0.5;
 const NODE_COUNT: i32 = 131072;
-const BLOCK_ONCE_EVERY: i32 = 1024;
-const SIM_LENGTH: i32 = 131072;
+const BLOCK_ONCE_EVERY: usize = 1024;
+const SIM_LENGTH: usize = 131072;
 
-struct Ghost {
+pub struct Ghost {
     blocks: HashMap<Vec<u8>, (usize, Option<()>)>,
     children: HashMap<Vec<u8>, Vec<Vec<u8>>>,
     height_to_bytes: Vec<[u8; 4]>,
@@ -248,4 +248,15 @@ pub fn ghost() -> Vec<u8> {
 pub fn get_power_of_2_below(x: usize) -> usize {
     let logz = get_logz(x);
     2_u64.pow(logz) as usize
+}
+
+pub fn simulate_chain() {
+    let start_time = time::Instant::now();
+
+    for i in (0..SIM_LENGTH).step_by(BLOCK_ONCE_EVERY) {
+        let head = ghost();
+        for j in (i..i+BLOCK_ONCE_EVERY) {
+
+        }
+    }
 }
