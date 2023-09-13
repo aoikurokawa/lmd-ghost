@@ -71,7 +71,7 @@ impl Ghost {
 
     pub fn get_clear_winner(
         &self,
-        latest_votes: HashMap<Vec<u8>, u32>,
+        latest_votes: HashMap<Vec<u8>, u64>,
         h: usize,
     ) -> Option<Vec<u8>> {
         let mut at_height = HashMap::new();
@@ -177,7 +177,7 @@ pub fn ghost() -> Vec<u8> {
 
     let mut children = ghost.children;
     loop {
-        let c = children.entry(head).or_insert(vec![]);
+        let c = children.get(&head).unwrap_or(&Vec::new());
         if c.is_empty() {
             return head;
         }
@@ -187,8 +187,8 @@ pub fn ghost() -> Vec<u8> {
             let possible_clear_winner =
                 ghost.get_clear_winner(latest_votes, height - (height % step) + step);
 
-            if possible_clear_winner.is_some() {
-                head = possible_clear_winner.unwrap();
+            if let Some(winner) = possible_clear_winner {
+                head = winner;
                 break;
             }
             step /= 2;
@@ -197,7 +197,7 @@ pub fn ghost() -> Vec<u8> {
         if step > 0 {
             continue;
         } else if c.len() == 1 {
-            head = c.get(0).unwrap();
+            head = c[0].clone();
         } else {
             let child_votes = HashMap::new();
             for x in c.iter() {
@@ -228,7 +228,7 @@ pub fn ghost() -> Vec<u8> {
     }
 }
 
-pub fn get_power_of_2_below(x: usize) -> u64 {
+pub fn get_power_of_2_below(x: usize) -> usize {
     let logz = get_logz(x);
-    2_u64.pow(logz)
+    2_u64.pow(logz) as usize
 }
