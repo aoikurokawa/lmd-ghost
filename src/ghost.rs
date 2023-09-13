@@ -1,12 +1,16 @@
 use std::{collections::HashMap, time};
 
+use rand::{seq::SliceRandom, Rng};
+
 const LATENCY_FACTOR: f64 = 0.5;
 const NODE_COUNT: i32 = 131072;
 const BLOCK_ONCE_EVERY: usize = 1024;
 const SIM_LENGTH: usize = 131072;
 
 pub struct Ghost {
-    blocks: HashMap<Vec<u8>, (usize, Option<()>)>,
+    balances: Vec<u64>,
+    latest_message: Vec<Vec<u8>>,
+    blocks: HashMap<Vec<u8>, (usize, Vec<u8>)>,
     children: HashMap<Vec<u8>, Vec<Vec<u8>>>,
     height_to_bytes: Vec<[u8; 4]>,
     cache: HashMap<Vec<u8>, Vec<u8>>,
@@ -28,6 +32,8 @@ impl Ghost {
         }
 
         Self {
+            balances: vec![1; NODE_COUNT as usize],
+            latest_message: vec![[0; 32].to_vec(); NODE_COUNT as usize],
             blocks: HashMap::new(),
             children: HashMap::new(),
             height_to_bytes,
@@ -70,6 +76,12 @@ impl Ghost {
         Some(o)
     }
 
+    pub fn add_attestation(&mut self, block: Vec<u8>, validator_idx: usize) {
+        if let Some(message) = self.latest_message.get_mut(validator_idx) {
+            *message = block;
+        }
+    }
+
     pub fn get_clear_winner(
         &mut self,
         latest_votes: &HashMap<Vec<u8>, u64>,
@@ -100,25 +112,42 @@ impl Ghost {
 
         None
     }
-}
 
-pub fn get_logz(x: usize) -> u32 {
-    let logz: Vec<u32> = vec![0, 0];
-    logz[x]
-}
+    pub fn get_perturbed_head(&self, head: &Vec<u8>) -> Vec<u8> {
+        let mut rng = rand::thread_rng();
+        let random_num: f64 = rng.gen();
+        let mut head = head;
+        let mut up_count = 0;
+        let height = self.get_height(&head).unwrap();
 
-pub fn latest_message(index: usize) -> [u8; 32] {
-    let message: Vec<[u8; 32]> = vec![[0; 32]; NODE_COUNT as usize];
-    message[index]
-}
+        while height > 0 && random_num < LATENCY_FACTOR {
+            if let Some(block) = self.blocks.get(head) {
+                head = &block.1;
+                up_count += 1;
+            }
+        }
 
-pub fn get_balances() -> Vec<u64> {
-    vec![1; NODE_COUNT as usize]
-}
+        for _ in 0..rng.gen_range(0..=up_count) {
+            if self.children.contains_key(head) {
+                head = self.children.get(head).unwrap().choose(&mut rng).unwrap();
+            }
+        }
 
-pub fn get_balance(index: usize) -> u64 {
-    let balances = vec![1; NODE_COUNT as usize];
-    balances[index]
+        head.to_vec()
+    }
+
+    pub fn latest_message(&self, index: usize) -> Option<Vec<u8>> {
+        self.latest_message.get(index).cloned()
+    }
+
+    pub fn get_logz(&self, x: usize) -> Option<u8> {
+        self.logz.get(x).copied()
+    }
+
+    pub fn get_power_of_2_below(&self, x: usize) -> usize {
+        let logz = self.get_logz(x).unwrap();
+        2_u64.pow(logz as u32) as usize
+    }
 }
 
 pub fn max_known_height(index: usize) -> Option<usize> {
@@ -180,10 +209,10 @@ pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
 pub fn ghost() -> Vec<u8> {
     let mut ghost = Ghost::new();
     let mut latest_votes: HashMap<Vec<u8>, u64> = HashMap::new();
-    let balances = get_balances();
+    // let balances = get_balances();
 
-    for (i, balance) in balances.iter().enumerate() {
-        let message = latest_message(i);
+    for (i, balance) in ghost.balances.iter().enumerate() {
+        let message = ghost.latest_message(i).unwrap();
         let entry = latest_votes.entry(message.to_vec()).or_insert(0u64);
         *entry += *balance;
     }
@@ -200,7 +229,7 @@ pub fn ghost() -> Vec<u8> {
             return head;
         }
         let max_known_height = max_known_height(0).unwrap();
-        let mut step = get_power_of_2_below(max_known_height - height);
+        let mut step = ghost.get_power_of_2_below(max_known_height - height);
         while step > 0 {
             let possible_clear_winner =
                 ghost.get_clear_winner(&latest_votes, height - (height % step) + step);
@@ -245,18 +274,14 @@ pub fn ghost() -> Vec<u8> {
     }
 }
 
-pub fn get_power_of_2_below(x: usize) -> usize {
-    let logz = get_logz(x);
-    2_u64.pow(logz) as usize
-}
-
 pub fn simulate_chain() {
+    let mut ghost_config = Ghost::new();
     let start_time = time::Instant::now();
 
     for i in (0..SIM_LENGTH).step_by(BLOCK_ONCE_EVERY) {
         let head = ghost();
-        for j in (i..i+BLOCK_ONCE_EVERY) {
-
+        for j in (i..i + BLOCK_ONCE_EVERY) {
+            let phead = ghost_config.get_perturbed_head(&head);
         }
     }
 }
