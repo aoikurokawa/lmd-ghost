@@ -70,7 +70,7 @@ impl Ghost {
     }
 
     pub fn get_clear_winner(
-        &self,
+        &mut self,
         latest_votes: &HashMap<Vec<u8>, u64>,
         h: usize,
     ) -> Option<Vec<u8>> {
@@ -78,15 +78,17 @@ impl Ghost {
         let mut total_vote_count = 0;
 
         for (k, v) in latest_votes.iter() {
-            let anc = self.get_ancestor(k, h);
-            if anc.is_some() {
+            if let Some(anc) = self.get_ancestor(k, h) {
                 total_vote_count += 1;
+
+                let mut anc_height = match at_height.get(&anc) {
+                    Some(height) => *height,
+                    None => 0,
+                };
+                anc_height += v;
+
+                at_height.insert(anc, anc_height);
             }
-
-            let mut anc_height = at_height.entry(&anc.unwrap()).or_insert(0);
-            *anc_height += v;
-
-            at_height.insert(&anc.unwrap(), *anc_height);
         }
 
         for (k, v) in at_height.iter() {
@@ -188,7 +190,6 @@ pub fn ghost() -> Vec<u8> {
     let mut head = vec![0u8; 32];
     let mut height = 0;
 
-    // let children = ghost.children.clone();
     loop {
         let c = match ghost.children.get(&head) {
             Some(child) => child.clone(),
