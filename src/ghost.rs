@@ -71,7 +71,7 @@ impl Ghost {
 
     pub fn get_clear_winner(
         &self,
-        latest_votes: HashMap<Vec<u8>, u64>,
+        latest_votes: &HashMap<Vec<u8>, u64>,
         h: usize,
     ) -> Option<Vec<u8>> {
         let mut at_height = HashMap::new();
@@ -105,7 +105,7 @@ pub fn get_logz(x: usize) -> u32 {
 }
 
 pub fn latest_message(index: usize) -> [u8; 32] {
-    let mut message: Vec<[u8; 32]> = vec![[0; 32]; NODE_COUNT as usize];
+    let message: Vec<[u8; 32]> = vec![[0; 32]; NODE_COUNT as usize];
     message[index]
 }
 
@@ -114,12 +114,12 @@ pub fn get_balances() -> Vec<u64> {
 }
 
 pub fn get_balance(index: usize) -> u64 {
-    let mut balances = vec![1; NODE_COUNT as usize];
+    let balances = vec![1; NODE_COUNT as usize];
     balances[index]
 }
 
 pub fn max_known_height(index: usize) -> Option<usize> {
-    let mut h = Vec::from([0]);
+    let h = Vec::from([0]);
     h.get(index).copied()
 }
 
@@ -132,7 +132,7 @@ pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
         let mut single_candidate = None;
 
         for candidate in votes.keys() {
-            let mut votes_for_candidate = votes.get(candidate);
+            let votes_for_candidate = votes.get(candidate);
             if candidate.len() == 8 {
                 let arr = [
                     candidate[0],
@@ -144,7 +144,7 @@ pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
                     candidate[6],
                     candidate[7],
                 ];
-                let mut candidate_as_int = u64::from_be_bytes(arr);
+                let candidate_as_int = u64::from_be_bytes(arr);
 
                 if candidate_as_int >> (bit + 1) != bitmask {
                     continue;
@@ -177,7 +177,7 @@ pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
 pub fn ghost() -> Vec<u8> {
     let mut ghost = Ghost::new();
     let mut latest_votes: HashMap<Vec<u8>, u64> = HashMap::new();
-    let mut balances = get_balances();
+    let balances = get_balances();
 
     for (i, balance) in balances.iter().enumerate() {
         let message = latest_message(i);
@@ -188,9 +188,12 @@ pub fn ghost() -> Vec<u8> {
     let mut head = vec![0u8; 32];
     let mut height = 0;
 
-    let mut children = ghost.children;
+    // let children = ghost.children.clone();
     loop {
-        let c = children.get(&head).unwrap_or(&Vec::new());
+        let c = match ghost.children.get(&head) {
+            Some(child) => child.clone(),
+            None => vec![],
+        };
         if c.is_empty() {
             return head;
         }
@@ -198,7 +201,7 @@ pub fn ghost() -> Vec<u8> {
         let mut step = get_power_of_2_below(max_known_height - height);
         while step > 0 {
             let possible_clear_winner =
-                ghost.get_clear_winner(latest_votes, height - (height % step) + step);
+                ghost.get_clear_winner(&latest_votes, height - (height % step) + step);
 
             if let Some(winner) = possible_clear_winner {
                 head = winner;
@@ -214,13 +217,12 @@ pub fn ghost() -> Vec<u8> {
         } else {
             let mut child_votes = HashMap::new();
             for x in c.iter() {
-                child_votes.insert(*x, 0.01);
+                child_votes.insert(x.clone(), 0.01);
             }
             for (k, v) in latest_votes.iter() {
-                let child = ghost.get_ancestor(k, height + 1);
-                if child.is_some() {
-                    let child_vote = child_votes.get(&child.unwrap()).unwrap_or(&0f64);
-                    child_votes.insert(child.unwrap(), *child_vote + *v as f64);
+                if let Some(child) = ghost.get_ancestor(k, height + 1) {
+                    let child_vote = child_votes.get(&child).unwrap_or(&0f64);
+                    child_votes.insert(child, *child_vote + *v as f64);
                 }
             }
             head = choose_best_child(child_votes).unwrap();
@@ -228,14 +230,14 @@ pub fn ghost() -> Vec<u8> {
 
         height = ghost.get_height(&head).unwrap();
         let mut deletes = Vec::new();
-        for (k, v) in latest_votes.iter() {
+        for (k, _v) in latest_votes.iter() {
             let anc = ghost.get_ancestor(k, height).unwrap();
             if anc.to_vec() != head {
-                deletes.push(k);
+                deletes.push(k.clone());
             }
         }
 
-        for k in deletes.into_iter() {
+        for k in deletes.iter() {
             latest_votes.remove(k);
         }
     }
