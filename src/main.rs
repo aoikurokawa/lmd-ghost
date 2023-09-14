@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ethereum_types::H256 as Hash256;
+use ghost::simulate_chain;
 
 mod ghost;
 mod node;
@@ -20,5 +21,6 @@ pub struct Block {
 pub type Store = HashMap<Hash256, Block>;
 
 fn main() {
-    println!("Hello, world!");
+    // println!("Hello, world!");
+    simulate_chain();
 }

@@ -1,4 +1,4 @@
-use std::{collections::HashMap, time};
+use std::{cmp::max, collections::HashMap, time};
 
 use rand::{seq::SliceRandom, Rng, RngCore};
 
@@ -16,6 +16,7 @@ pub struct Ghost {
     cache: HashMap<Vec<u8>, Vec<u8>>,
     ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>>,
     logz: Vec<u8>,
+    max_known_height: Vec<usize>,
 }
 
 impl Ghost {
@@ -40,11 +41,19 @@ impl Ghost {
             cache: HashMap::new(),
             ancestors,
             logz: Vec::from([0, 0]),
+            max_known_height: vec![0],
         }
     }
 
-    pub fn get_height(&self, block: &Vec<u8>) -> Option<usize> {
-        Some(self.blocks.get(block).unwrap().0)
+    pub fn get_height(&self, block: &Vec<u8>) -> usize {
+        // match self.blocks.get(block) {
+        //     Some(block) => Some(block.0),
+        //     None => None,
+        // }
+        match self.blocks.get(block) {
+            Some(block) => block.0,
+            None => 0,
+        }
     }
 
     pub fn get_ancestor(&mut self, block: &Vec<u8>, at_height: usize) -> Option<Vec<u8>> {
@@ -80,8 +89,9 @@ impl Ghost {
         let mut rng = rand::thread_rng();
         let mut new_block_hash = [0u8; 32];
         rng.fill_bytes(&mut new_block_hash);
-        let h = self.get_height(&parent).unwrap();
-        self.blocks.insert(new_block_hash.to_vec(), (h+1, parent.clone()));
+        let h = self.get_height(&parent);
+        self.blocks
+            .insert(new_block_hash.to_vec(), (h + 1, parent.clone()));
 
         if self.children.contains_key(&parent) {
             self.children.insert(parent.clone(), vec![]);
@@ -92,10 +102,21 @@ impl Ghost {
         }
 
         for i in 0..16 {
-            if h % 2.pow(i) == 0 {
-                self.ancestors[i].get_mut(new_block_hash.to_vec())
+            if h % 2usize.pow(i) == 0 {
+                if let Some(ancestor) = self.ancestors[i as usize].get_mut(&new_block_hash.to_vec())
+                {
+                    *ancestor = parent.to_vec();
+                }
+            } else {
+                let ancestors = self.ancestors.clone();
+                if let Some(ancestor) = self.ancestors[i as usize].get_mut(&new_block_hash.to_vec())
+                {
+                    *ancestor = ancestors[i as usize].get(&parent).unwrap().to_vec();
+                }
             }
         }
+
+        self.max_known_height[0] = max(self.max_known_height[0], h + 1);
     }
 
     pub fn add_attestation(&mut self, block: Vec<u8>, validator_idx: usize) {
@@ -140,7 +161,7 @@ impl Ghost {
         let random_num: f64 = rng.gen();
         let mut head = head;
         let mut up_count = 0;
-        let height = self.get_height(&head).unwrap();
+        let height = self.get_height(&head);
 
         while height > 0 && random_num < LATENCY_FACTOR {
             if let Some(block) = self.blocks.get(head) {
@@ -228,10 +249,8 @@ pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
     None
 }
 
-pub fn ghost() -> Vec<u8> {
-    let mut ghost = Ghost::new();
+pub fn ghost(ghost: &mut Ghost) -> Vec<u8> {
     let mut latest_votes: HashMap<Vec<u8>, u64> = HashMap::new();
-    // let balances = get_balances();
 
     for (i, balance) in ghost.balances.iter().enumerate() {
         let message = ghost.latest_message(i).unwrap();
@@ -281,7 +300,7 @@ pub fn ghost() -> Vec<u8> {
             head = choose_best_child(child_votes).unwrap();
         }
 
-        height = ghost.get_height(&head).unwrap();
+        height = ghost.get_height(&head);
         let mut deletes = Vec::new();
         for (k, _v) in latest_votes.iter() {
             let anc = ghost.get_ancestor(k, height).unwrap();
@@ -298,16 +317,22 @@ pub fn ghost() -> Vec<u8> {
 
 pub fn simulate_chain() {
     let mut ghost_config = Ghost::new();
-    let start_time = time::Instant::now();
+    let _start_time = time::Instant::now();
 
     for i in (0..SIM_LENGTH).step_by(BLOCK_ONCE_EVERY) {
-        let head = ghost();
-        for j in (i..i + BLOCK_ONCE_EVERY) {
-            let phead = ghost_config.get_perturbed_head(&head);
-            ghost_config.add_attestation(phead, i % NODE_COUNT);
+        let head = ghost(&mut ghost_config);
+        let mut phead = Vec::new();
+        for _j in i..i + BLOCK_ONCE_EVERY {
+            phead = ghost_config.get_perturbed_head(&head);
+            ghost_config.add_attestation(phead.clone(), i % NODE_COUNT);
         }
 
         // println!("Adding new blcok on top of block {} {}. Time so far: {}", ghost_config.blocks.get(phead).unwrap()[0], hex::encode() )
-        
+
+        ghost_config.add_block(phead);
     }
+
+    println!("{}", ghost_config.cache.len());
+    println!("{}", ghost_config.ancestors.len());
+    println!("{}", ghost_config.blocks.len());
 }
