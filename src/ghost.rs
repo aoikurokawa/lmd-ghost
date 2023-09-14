@@ -1,9 +1,9 @@
 use std::{collections::HashMap, time};
 
-use rand::{seq::SliceRandom, Rng};
+use rand::{seq::SliceRandom, Rng, RngCore};
 
 const LATENCY_FACTOR: f64 = 0.5;
-const NODE_COUNT: i32 = 131072;
+const NODE_COUNT: usize = 131072;
 const BLOCK_ONCE_EVERY: usize = 1024;
 const SIM_LENGTH: usize = 131072;
 
@@ -74,6 +74,28 @@ impl Ghost {
         self.cache.insert(cache_key, o.clone());
 
         Some(o)
+    }
+
+    pub fn add_block(&mut self, parent: Vec<u8>) {
+        let mut rng = rand::thread_rng();
+        let mut new_block_hash = [0u8; 32];
+        rng.fill_bytes(&mut new_block_hash);
+        let h = self.get_height(&parent).unwrap();
+        self.blocks.insert(new_block_hash.to_vec(), (h+1, parent.clone()));
+
+        if self.children.contains_key(&parent) {
+            self.children.insert(parent.clone(), vec![]);
+        }
+
+        if let Some(child) = self.children.get_mut(&parent) {
+            child.push(new_block_hash.to_vec());
+        }
+
+        for i in 0..16 {
+            if h % 2.pow(i) == 0 {
+                self.ancestors[i].get_mut(new_block_hash.to_vec())
+            }
+        }
     }
 
     pub fn add_attestation(&mut self, block: Vec<u8>, validator_idx: usize) {
@@ -282,6 +304,10 @@ pub fn simulate_chain() {
         let head = ghost();
         for j in (i..i + BLOCK_ONCE_EVERY) {
             let phead = ghost_config.get_perturbed_head(&head);
+            ghost_config.add_attestation(phead, i % NODE_COUNT);
         }
+
+        // println!("Adding new blcok on top of block {} {}. Time so far: {}", ghost_config.blocks.get(phead).unwrap()[0], hex::encode() )
+        
     }
 }

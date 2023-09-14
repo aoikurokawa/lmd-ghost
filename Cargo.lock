@@ -189,6 +189,7 @@ name = "lmd-ghost"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
+ "hex",
  "num-traits",
  "rand",
 ]
