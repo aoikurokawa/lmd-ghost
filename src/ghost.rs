@@ -46,10 +46,6 @@ impl Ghost {
     }
 
     pub fn get_height(&self, block: &Vec<u8>) -> usize {
-        // match self.blocks.get(block) {
-        //     Some(block) => Some(block.0),
-        //     None => None,
-        // }
         match self.blocks.get(block) {
             Some(block) => block.0,
             None => 0,
@@ -317,7 +313,7 @@ pub fn ghost(ghost: &mut Ghost) -> Vec<u8> {
 
 pub fn simulate_chain() {
     let mut ghost_config = Ghost::new();
-    let _start_time = time::Instant::now();
+    let start_time = time::Instant::now();
 
     for i in (0..SIM_LENGTH).step_by(BLOCK_ONCE_EVERY) {
         let head = ghost(&mut ghost_config);
@@ -327,7 +323,15 @@ pub fn simulate_chain() {
             ghost_config.add_attestation(phead.clone(), i % NODE_COUNT);
         }
 
-        // println!("Adding new blcok on top of block {} {}. Time so far: {}", ghost_config.blocks.get(phead).unwrap()[0], hex::encode() )
+        let sliced_data = &phead[..4];
+        if let Some(block) = ghost_config.blocks.get(&phead) {
+            println!(
+                "Adding new blcok on top of block {} {}. Time so far: {}",
+                block.0,
+                hex::encode(sliced_data),
+                start_time.elapsed().as_secs()
+            );
+        }
 
         ghost_config.add_block(phead);
     }
