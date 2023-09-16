@@ -1,6 +1,7 @@
-# LMD-GHOST
+# LMD-GHOST (Latest Message Driven, Greedy Heaviest-Observed Sub-Tree)
 
-## Overview
+## GHOST
+The GHOST protocol comes from a 2013 paper by Sompolinsky and Zohar about how to safely imporove transaction throughput on Bitcoin.
 
 ## Tech Stack
 
