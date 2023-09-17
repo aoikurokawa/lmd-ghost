@@ -1,3 +1,7 @@
+use ethereum_types::H256 as Hash256;
+
+use crate::Height;
+
 #[derive(Default, Clone)]
 pub struct Node {
     pub parent_hash: Option<Hash256>,

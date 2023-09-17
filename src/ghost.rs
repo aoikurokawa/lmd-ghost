@@ -1,47 +1,64 @@
-use std::collections::HashMap;
+use std::{cmp::max, collections::HashMap, time};
+
+use rand::{seq::SliceRandom, Rng, RngCore};
 
 const LATENCY_FACTOR: f64 = 0.5;
-const NODE_COUNT: i32 = 131072;
-const BLOCK_ONCE_EVERY: i32 = 1024;
-const SIM_LENGTH: i32 = 131072;
+const NODE_COUNT: usize = 131072;
+const BLOCK_ONCE_EVERY: usize = 1024;
+const SIM_LENGTH: usize = 131072;
 
-struct Ghost {
-    blocks: HashMap<[u8; 32], (usize, Option<()>)>,
+pub struct Ghost {
+    balances: Vec<u64>,
+    latest_message: Vec<Vec<u8>>,
+    blocks: HashMap<Vec<u8>, (usize, Vec<u8>)>,
+    children: HashMap<Vec<u8>, Vec<Vec<u8>>>,
     height_to_bytes: Vec<[u8; 4]>,
-    cache: HashMap<Vec<u8>, [u8; 32]>,
-    ancestors: Vec<HashMap<[u8; 32], [u8; 32]>>,
+    cache: HashMap<Vec<u8>, Vec<u8>>,
+    ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>>,
     logz: Vec<u8>,
+    max_known_height: Vec<usize>,
 }
 
 impl Ghost {
     pub fn new() -> Self {
         let height_to_bytes: Vec<[u8; 4]> = (1..10000).map(|i: i32| i.to_be_bytes()).collect();
 
-        let mut ancestors: Vec<HashMap<[u8; 32], [u8; 32]>> = Vec::new();
+        let mut ancestors: Vec<HashMap<Vec<u8>, Vec<u8>>> = Vec::new();
         for _ in 0..16 {
             let mut ancestor_map = HashMap::new();
-            let key = [0u8; 32];
-            let value = [0u8; 32];
+            let key = Vec::from([0u8; 32]);
+            let value = Vec::from([0u8; 32]);
             ancestor_map.insert(key, value);
             ancestors.push(ancestor_map);
         }
 
         Self {
+            balances: vec![1; NODE_COUNT as usize],
+            latest_message: vec![[0; 32].to_vec(); NODE_COUNT as usize],
             blocks: HashMap::new(),
+            children: HashMap::new(),
             height_to_bytes,
             cache: HashMap::new(),
             ancestors,
             logz: Vec::from([0, 0]),
+            max_known_height: vec![0],
         }
     }
 
-    pub fn get_ancestor(&self, block: [u8; 32], at_height: usize) -> Option<[u8; 32]> {
-        let h = self.blocks.get(&block).unwrap().0;
+    pub fn get_height(&self, block: &Vec<u8>) -> usize {
+        match self.blocks.get(block) {
+            Some(block) => block.0,
+            None => 0,
+        }
+    }
+
+    pub fn get_ancestor(&mut self, block: &Vec<u8>, at_height: usize) -> Option<Vec<u8>> {
+        let h = self.blocks.get(block).unwrap().0;
         if at_height >= h {
             if at_height > h {
                 return None;
             } else {
-                return Some(block);
+                return Some(block.clone());
             }
         }
 
@@ -50,37 +67,80 @@ impl Ghost {
         cache_key.extend_from_slice(bytes);
 
         if self.cache.contains_key(&cache_key) {
-            return self.cache.get(&cache_key).copied();
+            return self.cache.get(&cache_key).cloned();
         }
 
         let log = self.logz.get(h - at_height - 1).unwrap();
-        let ancestor = self.ancestors.get(*log as usize).unwrap();
+        let ancestors_clone = self.ancestors.clone();
+        let ancestor = ancestors_clone.get(*log as usize).unwrap();
         let b = ancestor.get(block.as_slice()).unwrap();
 
-        let o = self.get_ancestor(*b, at_height).unwrap();
-        self.cache.insert(cache_key, o);
+        let o = self.get_ancestor(b, at_height).unwrap();
+        self.cache.insert(cache_key, o.clone());
 
         Some(o)
     }
 
+    pub fn add_block(&mut self, parent: Vec<u8>) {
+        let mut rng = rand::thread_rng();
+        let mut new_block_hash = [0u8; 32];
+        rng.fill_bytes(&mut new_block_hash);
+        let h = self.get_height(&parent);
+        self.blocks
+            .insert(new_block_hash.to_vec(), (h + 1, parent.clone()));
+
+        if self.children.contains_key(&parent) {
+            self.children.insert(parent.clone(), vec![]);
+        }
+
+        if let Some(child) = self.children.get_mut(&parent) {
+            child.push(new_block_hash.to_vec());
+        }
+
+        for i in 0..16 {
+            if h % 2usize.pow(i) == 0 {
+                if let Some(ancestor) = self.ancestors[i as usize].get_mut(&new_block_hash.to_vec())
+                {
+                    *ancestor = parent.to_vec();
+                }
+            } else {
+                let ancestors = self.ancestors.clone();
+                if let Some(ancestor) = self.ancestors[i as usize].get_mut(&new_block_hash.to_vec())
+                {
+                    *ancestor = ancestors[i as usize].get(&parent).unwrap().to_vec();
+                }
+            }
+        }
+
+        self.max_known_height[0] = max(self.max_known_height[0], h + 1);
+    }
+
+    pub fn add_attestation(&mut self, block: Vec<u8>, validator_idx: usize) {
+        if let Some(message) = self.latest_message.get_mut(validator_idx) {
+            *message = block;
+        }
+    }
+
     pub fn get_clear_winner(
-        &self,
-        latest_votes: HashMap<[u8; 32], u32>,
+        &mut self,
+        latest_votes: &HashMap<Vec<u8>, u64>,
         h: usize,
     ) -> Option<Vec<u8>> {
         let mut at_height = HashMap::new();
         let mut total_vote_count = 0;
 
         for (k, v) in latest_votes.iter() {
-            let anc = self.get_ancestor(*k, h);
-            if anc.is_some() {
+            if let Some(anc) = self.get_ancestor(k, h) {
                 total_vote_count += 1;
+
+                let mut anc_height = match at_height.get(&anc) {
+                    Some(height) => *height,
+                    None => 0,
+                };
+                anc_height += v;
+
+                at_height.insert(anc, anc_height);
             }
-
-            let mut anc_height = at_height.entry(&anc.unwrap()).or_insert(0);
-            *anc_height += v;
-
-            at_height.insert(&anc.unwrap(), *anc_height);
         }
 
         for (k, v) in at_height.iter() {
@@ -91,66 +151,128 @@ impl Ghost {
 
         None
     }
-}
 
-pub fn get_logz(x: usize) -> u32 {
-    let logz: Vec<u32> = vec![0, 0];
-    logz[x]
-}
+    pub fn get_perturbed_head(&self, head: &Vec<u8>) -> Vec<u8> {
+        let mut rng = rand::thread_rng();
+        let random_num: f64 = rng.gen();
+        let mut head = head;
+        let mut up_count = 0;
+        let height = self.get_height(&head);
 
-pub fn latest_message(index: usize) -> [u8; 32] {
-    let mut message: Vec<[u8; 32]> = vec![[0; 32]; NODE_COUNT as usize];
-    message[index]
-}
+        while height > 0 && random_num < LATENCY_FACTOR {
+            if let Some(block) = self.blocks.get(head) {
+                head = &block.1;
+                up_count += 1;
+            }
+        }
 
-pub fn get_balances() -> Vec<u64> {
-    vec![1; NODE_COUNT as usize]
-}
+        for _ in 0..rng.gen_range(0..=up_count) {
+            if self.children.contains_key(head) {
+                head = self.children.get(head).unwrap().choose(&mut rng).unwrap();
+            }
+        }
 
-pub fn get_balance(index: usize) -> u64 {
-    let mut balances = vec![1; NODE_COUNT as usize];
-    balances[index]
-}
+        head.to_vec()
+    }
 
-pub fn get_children() -> HashMap<[u8; 32], Vec<u8>> {
-    let map = HashMap::new();
-    map
+    pub fn latest_message(&self, index: usize) -> Option<Vec<u8>> {
+        self.latest_message.get(index).cloned()
+    }
+
+    pub fn get_logz(&self, x: usize) -> Option<u8> {
+        self.logz.get(x).copied()
+    }
+
+    pub fn get_power_of_2_below(&self, x: usize) -> usize {
+        let logz = self.get_logz(x).unwrap();
+        2_u64.pow(logz as u32) as usize
+    }
 }
 
 pub fn max_known_height(index: usize) -> Option<usize> {
-    let mut h = Vec::from([0]);
+    let h = Vec::from([0]);
     h.get(index).copied()
 }
 
-pub fn choose_best_child(votes: HashMap<u8, u64>) {}
+pub fn choose_best_child(votes: HashMap<Vec<u8>, f64>) -> Option<Vec<u8>> {
+    let mut bitmask = 0;
 
-pub fn ghost() -> Vec<u8> {
-    let mut ghost = Ghost::new();
-    let mut latest_votes = HashMap::new();
-    let mut balances = get_balances();
+    for bit in (0..=255).rev() {
+        let mut zero_votes = 0f64;
+        let mut one_votes = 0f64;
+        let mut single_candidate = None;
 
-    for (i, balance) in balances.iter().enumerate() {
-        let message = latest_message(i);
-        let entry = latest_votes.entry(i).or_insert(0);
+        for candidate in votes.keys() {
+            let votes_for_candidate = votes.get(candidate);
+            if candidate.len() == 8 {
+                let arr = [
+                    candidate[0],
+                    candidate[1],
+                    candidate[2],
+                    candidate[3],
+                    candidate[4],
+                    candidate[5],
+                    candidate[6],
+                    candidate[7],
+                ];
+                let candidate_as_int = u64::from_be_bytes(arr);
+
+                if candidate_as_int >> (bit + 1) != bitmask {
+                    continue;
+                }
+
+                if (candidate_as_int >> bit) % 2 == 0 {
+                    zero_votes += votes_for_candidate.unwrap();
+                } else {
+                    one_votes += votes_for_candidate.unwrap();
+                }
+
+                if single_candidate.is_none() {
+                    single_candidate = Some(candidate.to_vec());
+                } else {
+                    single_candidate = None;
+                }
+            }
+        }
+
+        let vote = if one_votes > zero_votes { 1 } else { 0 };
+        bitmask = (bitmask * 2) + vote;
+        if single_candidate.is_some() {
+            return single_candidate;
+        }
+    }
+
+    None
+}
+
+pub fn ghost(ghost: &mut Ghost) -> Vec<u8> {
+    let mut latest_votes: HashMap<Vec<u8>, u64> = HashMap::new();
+
+    for (i, balance) in ghost.balances.iter().enumerate() {
+        let message = ghost.latest_message(i).unwrap();
+        let entry = latest_votes.entry(message.to_vec()).or_insert(0u64);
         *entry += *balance;
     }
 
-    let mut head = vec![0; 32];
-    let height = 0;
+    let mut head = vec![0u8; 32];
+    let mut height = 0;
 
-    let mut children = get_children();
     loop {
-        let c = children.entry(head).or_insert(vec![]);
+        let c = match ghost.children.get(&head) {
+            Some(child) => child.clone(),
+            None => vec![],
+        };
         if c.is_empty() {
             return head;
         }
         let max_known_height = max_known_height(0).unwrap();
-        let step = get_power_of_2_below(max_known_height - height);
+        let mut step = ghost.get_power_of_2_below(max_known_height - height);
         while step > 0 {
-            let possible_clear_winner = ghost.get_clear_winner(latest_votes, height - (height % step) + step);
+            let possible_clear_winner =
+                ghost.get_clear_winner(&latest_votes, height - (height % step) + step);
 
-            if possible_clear_winner.is_some() {
-                head = possible_clear_winner.unwrap();
+            if let Some(winner) = possible_clear_winner {
+                head = winner;
                 break;
             }
             step /= 2;
@@ -159,25 +281,62 @@ pub fn ghost() -> Vec<u8> {
         if step > 0 {
             continue;
         } else if c.len() == 1 {
-            head = c.get(0).unwrap();
+            head = c[0].clone();
         } else {
-            let child_votes = HashMap::new();
+            let mut child_votes = HashMap::new();
             for x in c.iter() {
-                child_votes.insert(*x, 0.01);
+                child_votes.insert(x.clone(), 0.01);
             }
             for (k, v) in latest_votes.iter() {
-                let child = ghost.get_ancestor(k, height + 1);
-                if child.is_some() {
-                    // head = 
+                if let Some(child) = ghost.get_ancestor(k, height + 1) {
+                    let child_vote = child_votes.get(&child).unwrap_or(&0f64);
+                    child_votes.insert(child, *child_vote + *v as f64);
                 }
             }
+            head = choose_best_child(child_votes).unwrap();
+        }
+
+        height = ghost.get_height(&head);
+        let mut deletes = Vec::new();
+        for (k, _v) in latest_votes.iter() {
+            let anc = ghost.get_ancestor(k, height).unwrap();
+            if anc.to_vec() != head {
+                deletes.push(k.clone());
+            }
+        }
+
+        for k in deletes.iter() {
+            latest_votes.remove(k);
         }
     }
-
-    Vec::new()
 }
 
-pub fn get_power_of_2_below(x: usize) -> u64 {
-    let logz = get_logz(x);
-    2_u64.pow(logz)
+pub fn simulate_chain() {
+    let mut ghost_config = Ghost::new();
+    let start_time = time::Instant::now();
+
+    for i in (0..SIM_LENGTH).step_by(BLOCK_ONCE_EVERY) {
+        let head = ghost(&mut ghost_config);
+        let mut phead = Vec::new();
+        for _j in i..i + BLOCK_ONCE_EVERY {
+            phead = ghost_config.get_perturbed_head(&head);
+            ghost_config.add_attestation(phead.clone(), i % NODE_COUNT);
+        }
+
+        let sliced_data = &phead[..4];
+        if let Some(block) = ghost_config.blocks.get(&phead) {
+            println!(
+                "Adding new blcok on top of block {} {}. Time so far: {}",
+                block.0,
+                hex::encode(sliced_data),
+                start_time.elapsed().as_secs()
+            );
+        }
+
+        ghost_config.add_block(phead);
+    }
+
+    println!("{}", ghost_config.cache.len());
+    println!("{}", ghost_config.ancestors.len());
+    println!("{}", ghost_config.blocks.len());
 }
